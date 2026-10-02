@@ -15,12 +15,20 @@ all-features = true
 default = []
 
 chrono-04 = ["dep:chrono"]
-jiff-02   = ["dep:jiff"]
-schemars  = ["dep:schemars", "serde"]
-serde     = ["dep:serde_core"]
-std       = ["schemars?/std", "serde_core?/std", "thiserror/std", "zerocopy?/std"]
-time-03   = ["dep:time"]
-zerocopy  = ["dep:zerocopy"]
+jiff-02 = ["dep:jiff"]
+schemars = ["dep:schemars", "serde"]
+serde = ["dep:serde_core"]
+std = [
+    "chrono?/std",
+    "jiff?/std",
+    "schemars?/std",
+    "serde_core?/std",
+    "thiserror/std",
+    "time?/std",
+    "zerocopy?/std",
+]
+time-03 = ["dep:time"]
+zerocopy = ["dep:zerocopy"]
 
 [lints]
 workspace = true
