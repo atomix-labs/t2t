@@ -45,8 +45,9 @@ edition, licence and lints from the root `Cargo.toml`. The book is under
 and the lints' nightly options; the crates themselves build on stable, at the
 workspace's `rust-version`. The tools are the versions `.config/mise/` pins.
 `.github/workflows/platforms.yml` is the repository's own: the tests on arm64
-Linux and macOS, the bare-metal builds, the feature powerset, and the loom
-models.
+Linux and macOS, the bare-metal builds, the feature powerset, the loom models,
+and the fuzz targets. `crates/t2t-core/fuzz/` is a workspace of its own, one
+cargo-fuzz target a parser.
 
 ## Rules
 
@@ -67,6 +68,11 @@ models.
 - A change to `AtomicManualClock` runs its loom models, `cargo test -p t2t-clock
   --lib --release --config 'target."cfg(all())".rustflags=["--cfg","loom"]'`,
   and keeps its atomics in `sync.rs`, where `--cfg loom` swaps in loom's.
+- A change to a parser fuzzes it, `cargo fuzz run parse_timestamp --
+  -max_total_time=300` in `crates/t2t-core/fuzz/` (`cargo install cargo-fuzz`
+  installs the tool); what it adds to the corpus is kept small with `cargo fuzz
+  cmin`, and a crash it finds, shrunk with `cargo fuzz tmin`, becomes a unit
+  test.
 - No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
   the workspace's `rust-version`, and raising it is a change of its own.
 - Every name is whole words, never a fragment such as `at`, `by` or `held`.

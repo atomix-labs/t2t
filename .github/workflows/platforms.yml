@@ -1,7 +1,8 @@
 # What `check.yml`, on x86_64 Linux, cannot show: the tests on arm64 Linux and on macOS, on arm64
 # and on x86_64; every crate built for bare metal, where `std` cannot sneak in; every crate's every
-# combination of features, built alone, where a feature a crate forgets to forward fails; and the
-# loom models of t2t-clock's atomic clock, which try every interleaving its orderings allow.
+# combination of features, built alone, where a feature a crate forgets to forward fails; the loom
+# models of t2t-clock's atomic clock, which try every interleaving its orderings allow; and the two
+# parsers fuzzed, from the corpus committed under `crates/t2t-core/fuzz/`.
 name: platforms
 
 on:
@@ -74,3 +75,28 @@ jobs:
       - run: >-
           cargo test -p t2t-clock --lib --release --locked
           --config 'target."cfg(all())".rustflags=["--cfg","loom"]'
+
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: crates/t2t-core/fuzz
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # No profile pins cargo-fuzz.
+      - run: cargo install cargo-fuzz --version 0.13.2 --locked
+      # Each seed once, then a minute of new inputs.
+      - run: |
+          for target in parse_timedelta parse_timestamp; do
+            cargo fuzz run "$target" -- -runs=0
+            cargo fuzz run "$target" -- -max_total_time=60 -max_len=64
+          done
+      # The input that crashed a target, for `cargo fuzz tmin` to shrink.
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-artifacts
+          path: crates/t2t-core/fuzz/artifacts/
