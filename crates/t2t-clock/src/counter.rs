@@ -26,6 +26,10 @@ const PLAUSIBLE_RATES: RangeInclusive<u64> = 1_000_000..=10_000_000_000;
 /// use t2t_clock::{Clock, Counter};
 /// use t2t_core::Timedelta;
 ///
+/// # // The CI's Intel macOS virtual machines promise no invariant counter, so have none to read.
+/// # if Counter::discover() == Err(t2t_clock::CounterError::NotInvariant) {
+/// #     return Ok(());
+/// # }
 /// let counter = Counter::discover()?;
 /// let start = counter.now();
 /// let took = (counter.now() - start).to_timedelta(counter.rate());
