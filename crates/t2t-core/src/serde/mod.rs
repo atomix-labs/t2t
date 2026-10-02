@@ -25,7 +25,8 @@
 //! Each unit has an `option` module for a field that may be absent. Every module reads a count as
 //! a number or a decimal string, refusing one past what the type holds, and writes a number, but
 //! for nanoseconds since the epoch: those pass what an `f64` holds exactly, so a JSON reader backed
-//! by one would round them, and they are written as a string.
+//! by one would round them, and they are written as a string. A format no person reads, such as
+//! bincode or postcard, takes every count as an `i64`.
 
 #[cfg(feature = "schemars")]
 mod schema;
@@ -61,9 +62,14 @@ impl Visitor<'_> for CountVisitor {
     }
 }
 
-/// Reads a count of `unit`s, whichever way it was written, as nanoseconds.
+/// Reads a count of `unit`s as nanoseconds: whichever way it was written, where a person reads the
+/// format, and as an `i64` where none does, since such a format cannot say which it holds.
 fn read<'de, D: Deserializer<'de>>(deserializer: D, unit: Timedelta) -> Result<i64, D::Error> {
-    let count = deserializer.deserialize_any(CountVisitor)?;
+    let count = if deserializer.is_human_readable() {
+        deserializer.deserialize_any(CountVisitor)?
+    } else {
+        deserializer.deserialize_i64(CountVisitor)?
+    };
     count.checked_mul(unit.as_nanos()).ok_or_else(|| de::Error::custom(OutOfRangeError))
 }
 
@@ -72,9 +78,13 @@ fn write_number<S: Serializer>(count: i64, serializer: S) -> Result<S::Ok, S::Er
     serializer.serialize_i64(count)
 }
 
-/// Writes a count as a decimal string.
+/// Writes a count as a decimal string, or as a number where no person reads the format.
 fn write_decimal<S: Serializer>(count: i64, serializer: S) -> Result<S::Ok, S::Error> {
-    serializer.collect_str(&count)
+    if serializer.is_human_readable() {
+        serializer.collect_str(&count)
+    } else {
+        serializer.serialize_i64(count)
+    }
 }
 
 /// A `#[serde(with = …)]` module, and its `option` twin, for one type counted in one unit.
@@ -110,10 +120,28 @@ macro_rules! unit {
 
             /// The same, for a field that may be absent.
             pub mod option {
-                use serde_core::{Deserialize, Deserializer, Serializer};
+                use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
                 use crate::serde::{read, $write};
                 use crate::$type;
+
+                /// A count, in a shape `Option` writes and reads, with the presence a format no
+                /// person reads marks.
+                struct Counted($type);
+
+                impl Serialize for Counted {
+                    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        $write(self.0.$as_unit(), serializer)
+                    }
+                }
+
+                impl<'de> Deserialize<'de> for Counted {
+                    fn deserialize<D: Deserializer<'de>>(
+                        deserializer: D,
+                    ) -> Result<Self, D::Error> {
+                        read(deserializer, crate::Timedelta::$unit).map($type::from_nanos).map(Self)
+                    }
+                }
 
                 /// Writes the count, or nothing.
                 ///
@@ -122,10 +150,7 @@ macro_rules! unit {
                 pub fn serialize<S: Serializer>(
                     value: &Option<$type>, serializer: S,
                 ) -> Result<S::Ok, S::Error> {
-                    match *value {
-                        Some(value) => $write(value.$as_unit(), serializer),
-                        None => serializer.serialize_none(),
-                    }
+                    value.map(Counted).serialize(serializer)
                 }
 
                 /// Reads the count, or nothing.
@@ -136,19 +161,6 @@ macro_rules! unit {
                 pub fn deserialize<'de, D: Deserializer<'de>>(
                     deserializer: D,
                 ) -> Result<Option<$type>, D::Error> {
-                    /// A count, in a shape `Option` reads.
-                    struct Counted($type);
-
-                    impl<'de> Deserialize<'de> for Counted {
-                        fn deserialize<R: Deserializer<'de>>(
-                            deserializer: R,
-                        ) -> Result<Self, R::Error> {
-                            read(deserializer, crate::Timedelta::$unit)
-                                .map($type::from_nanos)
-                                .map(Self)
-                        }
-                    }
-
                     Ok(Option::<Counted>::deserialize(deserializer)?.map(|counted| counted.0))
                 }
             }
@@ -200,6 +212,7 @@ mod tests {
     use alloc::string::ToString as _;
 
     use serde::{Deserialize, Serialize};
+    use serde_test::{Configure as _, Token, assert_tokens};
 
     use crate::{Timedelta, Timestamp};
 
@@ -243,6 +256,26 @@ mod tests {
             r#"{"expiry":1700000300,"exact":"1789544735123456789","poll":250,"budget":500}"#
         );
         assert_eq!(serde_json::from_str::<Fields>(&written).expect("the fields"), FIELDS);
+    }
+
+    #[test]
+    fn a_format_no_person_reads_takes_each_count_as_an_integer() {
+        assert_tokens(
+            &FIELDS.compact(),
+            &[
+                Token::Struct { name: "Fields", len: 4 },
+                Token::Str("expiry"),
+                Token::I64(1_700_000_300),
+                Token::Str("exact"),
+                Token::I64(1_789_544_735_123_456_789),
+                Token::Str("poll"),
+                Token::I64(250),
+                Token::Str("budget"),
+                Token::Some,
+                Token::I64(500),
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
