@@ -31,7 +31,7 @@ mod tests {
             .expect("the child runs");
         let end = counter.now();
 
-        assert!(output.status.success(), "the child failed: {output:?}");
+        assert!(output.status.success(), "the child succeeded: {output:?}");
         let child_reading = String::from_utf8_lossy(&output.stdout)
             .lines()
             .find_map(|line| line.trim().parse().ok())

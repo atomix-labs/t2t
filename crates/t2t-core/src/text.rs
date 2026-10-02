@@ -35,8 +35,9 @@ impl<const CAPACITY: usize> Text<CAPACITY> {
 /// `Timestamp` reads it as its fraction's digits.
 impl<const CAPACITY: usize> fmt::Display for Text<CAPACITY> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // The whole array, of a constant length, validates faster than the cut, of a length known
-        // only at run time.
+        // Validated whole, zeros and all: an instant then writes in 29 ns against the cut's 35 ns,
+        // and a span in 46.7 ns against 46.2 ns, on a Graviton4, as
+        // `benches/results/2026-10-02T19-57Z-2a8c1db-text-validation/` shows.
         let text = str::from_utf8(&self.bytes).ok().and_then(|text| text.get(..self.length));
         let text = text.ok_or(fmt::Error)?;
         let Some(width) = formatter.width() else {

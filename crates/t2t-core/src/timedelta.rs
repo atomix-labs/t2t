@@ -240,7 +240,7 @@ impl fmt::Debug for Timedelta {
 }
 
 /// Reads what [`Display`](fmt::Display) writes, and the bare `0`: each unit at most once and
-/// coarsest first, so one span has one reading.
+/// coarsest first, with any count in each, so `48h` reads as the span `2d` spells.
 impl FromStr for Timedelta {
     type Err = ParseTimedeltaError;
 

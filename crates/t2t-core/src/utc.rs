@@ -19,9 +19,9 @@ const DAY_SHIFT: i64 = EPOCH_DAY + 146_097 * CYCLE_SHIFT;
 
 /// An instant read as a date and a time of day: UTC, in the proleptic Gregorian calendar.
 ///
-/// A view of an instant, not a value to compute with: arithmetic stays on the [`Timestamp`] it
-/// came from. Unix time has no leap seconds, so `second` is never 60. The fields are public, so one
-/// may be built by hand; [`is_valid`](Self::is_valid) checks one.
+/// A view of an instant: arithmetic stays on the [`Timestamp`] it came from. Unix time has no leap
+/// seconds, so `second` is never 60. The fields are public, so one may be built by hand;
+/// [`is_valid`](Self::is_valid) checks one.
 ///
 /// # Examples
 /// ```

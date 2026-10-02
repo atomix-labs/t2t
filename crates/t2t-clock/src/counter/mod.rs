@@ -50,8 +50,8 @@ pub struct Counter {
 }
 
 impl Counter {
-    /// The counter, at the rate the CPU reports for it, or on `x86_64` under `std`, one measured
-    /// over 10 ms where the CPU reports none.
+    /// The counter, at the rate the CPU reports for it, or on `x86_64`, where `std` brings the OS
+    /// clocks, one measured against them over 10 ms where the CPU reports none.
     ///
     /// # Errors
     /// - [`CounterError::NotInvariant`], the time-stamp counter's rate follows the core's.
@@ -130,7 +130,11 @@ mod tests {
     #[cfg_attr(miri, ignore = "Miri cannot execute the counter's read")]
     fn the_discovered_counter_runs_at_a_plausible_rate_and_advances() {
         let counter = Counter::discover().expect("a counter with a rate");
-        assert!(PLAUSIBLE_RATES.contains(&counter.rate().get()), "{}", counter.rate());
+        assert!(
+            PLAUSIBLE_RATES.contains(&counter.rate().get()),
+            "a plausible rate: {}",
+            counter.rate()
+        );
 
         let start = counter.now();
         for value in 0_u64..10_000 {

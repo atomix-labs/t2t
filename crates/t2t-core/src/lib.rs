@@ -24,8 +24,8 @@
 //! - [`TimePoint`] is what every point shares, for code generic over them.
 //! - [`ParseTimedeltaError`], [`ParseTimestampError`] and [`OutOfRangeError`] are the refusals.
 //!
-//! Every value is an `i64`, and its operators saturate at the ends of the range rather than
-//! overflow, each with a `checked_*` twin.
+//! Every point and span is an `i64`, and its operators saturate at the ends of the range rather
+//! than overflow, each with a `checked_*` twin.
 //!
 //! ```
 //! use t2t_core::{Timed, Timedelta, Timestamp};

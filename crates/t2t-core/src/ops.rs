@@ -1,4 +1,4 @@
-//! The arithmetic every point and span shares, written once for all five.
+//! The arithmetic every point and span shares, written once.
 
 use core::iter::Sum;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};

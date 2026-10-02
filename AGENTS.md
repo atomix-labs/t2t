@@ -62,9 +62,9 @@ cargo-fuzz target a parser.
 - A new timeline is a point of its own: its type in `t2t-core`, `point!` and,
   for nanoseconds, `nanosecond_units!` in `ops.rs`, its name in `clippy.toml`'s
   `arithmetic-side-effects-allowed`, and its re-export in the facade.
-- A new clock is one `os_clock!` in `t2t-clock/src/os.rs`, or a file of
-  its own implementing `Clock`, and a row in the clock tables of `t2t-clock`'s
-  crate page, the facade's and the README.
+- A new clock is one `os_clock!` in `t2t-clock/src/os.rs`, or a file of its own
+  implementing `Clock`, and a row in the clock tables of `t2t-clock`'s crate
+  page, the facade's and the README.
 - A change to `AtomicManualClock` runs its loom models, `cargo test -p t2t-clock
   --lib --release --config 'target."cfg(all())".rustflags=["--cfg","loom"]'`,
   and keeps its atomics in `sync.rs`, where `--cfg loom` swaps in loom's.

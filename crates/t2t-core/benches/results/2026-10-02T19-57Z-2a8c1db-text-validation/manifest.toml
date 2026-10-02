@@ -1,0 +1,27 @@
+run-id  = "2026-10-02T19-57Z-2a8c1db-text-validation"
+purpose = "what validating a Text whole costs against validating its cut, in the two spellings Text writes"
+
+[hardware]
+cpu        = "AWS Graviton4 (Arm Neoverse V2), c8g.8xlarge"
+cores      = 32
+cache-line = 64
+
+[environment]
+kernel        = "Linux 6.12.53-69.119.amzn2023.aarch64"
+isolated-cpus = "6-31"
+placement     = "taskset -c 8"
+
+[toolchain]
+rustc   = "1.101.0-nightly (d080e7dff 2026-09-27)"
+profile = "bench: release's settings, fat LTO, one codegen unit, built to unwind"
+flags   = "the workspace's floor, +crc"
+
+[parameters]
+command = "taskset -c 8 cargo bench -p t2t-core --bench convert, built first with --no-run"
+cut     = "Text's Display validating bytes.get(..length), on 2a8c1db"
+whole   = "Text's Display validating the whole array, as 2a8c1db has it"
+samples = 100
+
+[results.median-ns]
+write-rfc3339   = { cut = [35.23, 35.26], whole = [29.01, 29.1] }
+write-timedelta = { cut = [46.18, 46.14], whole = [46.58, 46.78] }

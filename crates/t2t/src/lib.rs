@@ -17,9 +17,9 @@
 //! The span between two points is a `Timedelta`, or for a `Tick`, a count of `Ticks` that its
 //! counter's `TickRate` turns into one.
 //!
-//! Every value is an `i64`, every operator saturates at the ends of the range, with a `checked_*`
-//! twin, and every clock answers one verb, [`now`](clock::Clock::now). A workspace that denies
-//! `clippy::arithmetic_side_effects` names the five points and spans in its clippy configuration's
+//! Every point and span is an `i64`, every operator saturates at the ends of the range, with a
+//! `checked_*` twin, and every clock answers one verb, [`now`](clock::Clock::now). A workspace that
+//! denies `clippy::arithmetic_side_effects` names each point and span in its clippy configuration's
 //! `arithmetic-side-effects-allowed`.
 //!
 //! # Choosing a Clock
@@ -50,17 +50,18 @@
 //!
 //! # Crate features
 //!
-//! None is on by default, and nothing reaches the operating system unless `std` is named.
+//! None is on by default, and nothing reaches the operating system unless `std` is named; what
+//! `std` adds is on 64-bit Linux and macOS.
 //!
-//! | Feature     | Adds                                                                                 |
-//! | ----------- | ------------------------------------------------------------------------------------ |
-//! | `std`       | the system clocks, `SystemTime` conversions, and an `x86_64` counter's measured rate |
-//! | `serde`     | the string spellings, and the `serde` modules for counts in a named unit             |
-//! | `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                       |
-//! | `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them               |
-//! | `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`      |
-//! | `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration`  |
-//! | `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`   |
+//! | Feature     | Adds                                                                                |
+//! | ----------- | ----------------------------------------------------------------------------------- |
+//! | `std`       | the OS clocks, `SystemTime` conversions, and an `x86_64` counter's measured rate    |
+//! | `serde`     | the string spellings, and the `serde` modules for counts in a named unit            |
+//! | `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                      |
+//! | `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them              |
+//! | `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`     |
+//! | `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration` |
+//! | `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`  |
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]

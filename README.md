@@ -17,10 +17,10 @@
 
 t2t holds the time a program reads and carries: instants on the wall, monotonic,
 boot and atomic timelines, a hardware counter's readings, the spans between
-them, and the clocks that read each. Every value is one `i64`, and every
-timeline its own type, so a reading from one clock is never subtracted from
-another's; every operator saturates rather than overflows. Nothing reaches the
-operating system unless the `std` feature asks.
+them, and the clocks that read each. Every point and span is one `i64`, and
+every timeline its own type, so a reading from one clock is never subtracted
+from another's; every operator saturates rather than overflows. Nothing reaches
+the operating system unless the `std` feature asks.
 
 | Crate       | What it holds                                                        |
 | ----------- | -------------------------------------------------------------------- |
@@ -74,15 +74,15 @@ clock's reading, and what one costs on the machine it runs on.
 
 ## Features
 
-| Feature     | Adds                                                                                |
-| ----------- | ----------------------------------------------------------------------------------- |
-| `std`       | the system clocks, `SystemTime` conversions, an x86_64 counter's rate               |
-| `serde`     | the string spellings, and modules for counts in a named unit                        |
-| `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                      |
-| `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them              |
-| `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`     |
-| `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration` |
-| `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`  |
+| Feature     | Adds                                                                                         |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| `std`       | on 64-bit Linux and macOS: the OS clocks, `SystemTime` conversions, an x86_64 counter's rate |
+| `serde`     | the string spellings, and modules for counts in a named unit                                 |
+| `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                               |
+| `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them                       |
+| `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`              |
+| `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
+| `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`           |
 
 None is on by default: `cargo add t2t --git https://github.com/atomix-labs/t2t
 --features std,serde`.
