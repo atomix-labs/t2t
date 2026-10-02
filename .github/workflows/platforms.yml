@@ -1,0 +1,64 @@
+# What `check.yml`, on x86_64 Linux, cannot show: the tests on arm64 Linux and on macOS, on arm64
+# and on x86_64; every crate built for bare metal, where `std` cannot sneak in; and every crate's
+# every combination of features, built alone, where a feature a crate forgets to forward fails.
+name: platforms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # cargo installs the toolchain rust-toolchain.toml names, on every runner.
+  RUSTUP_AUTO_INSTALL: "1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04-arm, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: cargo test --workspace --all-features --locked
+
+  no-std:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup target add aarch64-unknown-none x86_64-unknown-none
+      - run: |
+          for target in aarch64-unknown-none x86_64-unknown-none; do
+            cargo build --locked --package t2t-core --package t2t-clock --package t2t --target "$target"
+          done
+
+  features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MISE_LOCKED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-hack, at the version the lock pins.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.13
+          install_args: github:taiki-e/cargo-hack
+      - run: cargo hack check --workspace --feature-powerset --locked
