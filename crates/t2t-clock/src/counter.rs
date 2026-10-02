@@ -358,11 +358,15 @@ mod tests {
     #[cfg_attr(miri, ignore = "Miri cannot execute the counter's read")]
     fn the_discovered_counter_runs_at_a_plausible_rate() {
         let discovered = Counter::discover();
-        // On `x86_64` with no OS clock to measure against, a CPU that reports no rate, as a
-        // virtual machine's may, leaves the counter without one.
-        if cfg!(all(target_arch = "x86_64", not(os_clocks)))
-            && discovered == Err(CounterError::NoRate)
-        {
+        // An `x86_64` CPU, or a virtual machine's, may not promise an invariant time-stamp counter,
+        // and may report no rate, which only the OS clocks can then measure: refusals `discover`
+        // promises, which the CI's virtual machines give.
+        let refused_by_the_cpu = match discovered {
+            Err(CounterError::NotInvariant) => cfg!(target_arch = "x86_64"),
+            Err(CounterError::NoRate) => cfg!(all(target_arch = "x86_64", not(os_clocks))),
+            Ok(_) | Err(CounterError::ImplausibleRate { .. }) => false,
+        };
+        if refused_by_the_cpu {
             return;
         }
         let counter = discovered.expect("a counter with a rate");
