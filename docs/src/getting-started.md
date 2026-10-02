@@ -6,7 +6,7 @@ Add the crate, with the OS clocks:
 cargo add t2t --git https://github.com/atomix-labs/t2t --features std
 ```
 
-Two examples walk through the rest. The first prints the values: instants and
+Two examples walk through the rest. The first prints the values: points and
 spans, the calendar, a stamped value, and a counter's rate.
 
 ```sh

@@ -1,32 +1,35 @@
 //! How a time crosses to a config file, a log or a peer.
 //!
-//! A [`Timestamp`](crate::Timestamp) and a [`Timedelta`] serialize as the strings
-//! their `Display` writes: RFC 3339 for an instant, `"5m"` for a span. A peer that sends a count
-//! instead names its unit at the field, and the counted type picks the module:
-//!
-//! ```
-//! use serde::{Deserialize, Serialize};
-//! use t2t_core::{Timedelta, Timestamp};
-//!
-//! #[derive(Serialize, Deserialize)]
-//! struct Listing {
-//!     #[serde(with = "t2t_core::serde::timestamp::secs")]
-//!     expiry: Timestamp,
-//!     #[serde(with = "t2t_core::serde::timedelta::millis")]
-//!     poll: Timedelta,
-//! }
-//!
-//! let listing: Listing = serde_json::from_str(r#"{"expiry":1700000300,"poll":250}"#)?;
-//! assert_eq!(listing.expiry, Timestamp::from_secs(1_700_000_300), "whole seconds");
-//! assert_eq!(listing.poll, Timedelta::from_millis(250), "whole milliseconds");
-//! # Ok::<(), serde_json::Error>(())
-//! ```
+//! Every value serializes as the string its `Display` writes, where a person reads the format:
+//! RFC 3339 for an instant, `"1m30s"` for a span, `"24 ticks"` for a count of ticks. A format no
+//! person reads, such as bincode or postcard, takes each as its count. A peer that sends a count
+//! in a format a person reads names the unit at the field, and the counted type picks the module.
 //!
 //! Each unit has an `option` module for a field that may be absent. Every module reads a count as
 //! a number or a decimal string, refusing one past what the type holds, and writes a number, but
 //! for nanoseconds since the epoch: those pass what an `f64` holds exactly, so a JSON reader backed
-//! by one would round them, and they are written as a string. A format no person reads, such as
-//! bincode or postcard, takes every count as an `i64`.
+//! by one would round them, and they are written as a string.
+//!
+//! # Examples
+//! ```
+//! use serde::{Deserialize, Serialize};
+//! use serde_json::from_str;
+//! use t2t_core::serde::{timedelta, timestamp};
+//! use t2t_core::{Timedelta, Timestamp};
+//!
+//! #[derive(Serialize, Deserialize)]
+//! struct Listing {
+//!     #[serde(with = "timestamp::secs")]
+//!     expiry: Timestamp,
+//!     #[serde(with = "timedelta::millis")]
+//!     poll: Timedelta,
+//! }
+//!
+//! let listing: Listing = from_str(r#"{"expiry":1700000300,"poll":250}"#)?;
+//! assert_eq!(listing.expiry, Timestamp::from_secs(1_700_000_300), "whole seconds");
+//! assert_eq!(listing.poll, Timedelta::from_millis(250), "whole milliseconds");
+//! # Ok::<(), serde_json::Error>(())
+//! ```
 
 #[cfg(feature = "schemars")]
 mod schema;
@@ -37,7 +40,7 @@ use core::fmt;
 use serde_core::de::{self, Visitor};
 use serde_core::{Deserializer, Serializer};
 
-use crate::{OutOfRangeError, Timedelta};
+use crate::OutOfRangeError;
 
 /// Reads a count written as a number or as a decimal string.
 struct CountVisitor;
@@ -54,7 +57,7 @@ impl Visitor<'_> for CountVisitor {
     }
 
     fn visit_u64<E: de::Error>(self, count: u64) -> Result<i64, E> {
-        i64::try_from(count).ok().ok_or_else(|| E::custom(OutOfRangeError))
+        i64::try_from(count).map_err(|_past_the_range| E::custom(OutOfRangeError))
     }
 
     fn visit_str<E: de::Error>(self, count: &str) -> Result<i64, E> {
@@ -62,16 +65,17 @@ impl Visitor<'_> for CountVisitor {
     }
 }
 
-/// Reads a count of `unit`s as nanoseconds: whichever way it was written, where a person reads the
-/// format, and as the `i64` both writers write where none does, since a format that does not
-/// describe itself, as bincode or postcard, reads only the type it is asked for.
-fn read<'de, D: Deserializer<'de>>(deserializer: D, unit: Timedelta) -> Result<i64, D::Error> {
+/// Reads a count of units `nanos_per_unit` nanoseconds long, as nanoseconds: whichever way it was
+/// written, where a person reads the format, and as the `i64` both writers write where none does,
+/// since a format that does not describe itself, as bincode or postcard, reads only the type it is
+/// asked for.
+fn read<'de, D: Deserializer<'de>>(deserializer: D, nanos_per_unit: i64) -> Result<i64, D::Error> {
     let count = if deserializer.is_human_readable() {
         deserializer.deserialize_any(CountVisitor)?
     } else {
         deserializer.deserialize_i64(CountVisitor)?
     };
-    count.checked_mul(unit.as_nanos()).ok_or_else(|| de::Error::custom(OutOfRangeError))
+    count.checked_mul(nanos_per_unit).ok_or_else(|| de::Error::custom(OutOfRangeError))
 }
 
 /// Writes a count as a number.
@@ -89,12 +93,20 @@ fn write_decimal<S: Serializer>(count: i64, serializer: S) -> Result<S::Ok, S::E
 }
 
 /// A `#[serde(with = …)]` module, and its `option` twin, for one type counted in one unit.
-macro_rules! unit {
-    ($module:ident, $type:ident, $unit:ident, $as_unit:ident, $write:ident, $doc:literal) => {
+macro_rules! count_module {
+    (
+        $module:ident,
+        $type:ident,
+        $as_unit:ident,
+        $nanos_per_unit:ident,
+        $write:ident,
+        $doc:literal $(,)?
+    ) => {
         #[doc = concat!("A [`", stringify!($type), "`](crate::", stringify!($type), ") as ", $doc, ".")]
         pub mod $module {
             use serde_core::{Deserializer, Serializer};
 
+            use crate::consts::$nanos_per_unit;
             use crate::serde::{read, $write};
             use crate::$type;
 
@@ -116,13 +128,14 @@ macro_rules! unit {
             pub fn deserialize<'de, D: Deserializer<'de>>(
                 deserializer: D,
             ) -> Result<$type, D::Error> {
-                read(deserializer, crate::Timedelta::$unit).map($type::from_nanos)
+                read(deserializer, $nanos_per_unit).map($type::from_nanos)
             }
 
             /// The same, for a field that may be absent.
             pub mod option {
                 use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
+                use crate::consts::$nanos_per_unit;
                 use crate::serde::{read, $write};
                 use crate::$type;
 
@@ -140,7 +153,7 @@ macro_rules! unit {
                     fn deserialize<D: Deserializer<'de>>(
                         deserializer: D,
                     ) -> Result<Self, D::Error> {
-                        read(deserializer, crate::Timedelta::$unit).map($type::from_nanos).map(Self)
+                        read(deserializer, $nanos_per_unit).map($type::from_nanos).map(Self)
                     }
                 }
 
@@ -172,39 +185,74 @@ macro_rules! unit {
 /// A [`Timestamp`](crate::Timestamp) as a count since the Unix epoch, in the unit the module
 /// names.
 pub mod timestamp {
-    unit!(secs, Timestamp, SECOND, as_secs, write_number, "whole seconds since the Unix epoch");
-    unit!(
+    count_module!(
+        secs,
+        Timestamp,
+        as_secs,
+        NANOS_PER_SECOND,
+        write_number,
+        "whole seconds since the Unix epoch",
+    );
+    count_module!(
         millis,
         Timestamp,
-        MILLISECOND,
         as_millis,
+        NANOS_PER_MILLISECOND,
         write_number,
-        "whole milliseconds since the Unix epoch"
+        "whole milliseconds since the Unix epoch",
     );
-    unit!(
+    count_module!(
         micros,
         Timestamp,
-        MICROSECOND,
         as_micros,
+        NANOS_PER_MICROSECOND,
         write_number,
-        "whole microseconds since the Unix epoch"
+        "whole microseconds since the Unix epoch",
     );
-    unit!(
+    count_module!(
         nanos,
         Timestamp,
-        NANOSECOND,
         as_nanos,
+        NANOS_PER_NANOSECOND,
         write_decimal,
-        "nanoseconds since the Unix epoch, in a string"
+        "nanoseconds since the Unix epoch, in a string",
     );
 }
 
-/// A [`Timedelta`] as a count, in the unit the module names.
+/// A [`Timedelta`](crate::Timedelta) as a count, in the unit the module names.
 pub mod timedelta {
-    unit!(secs, Timedelta, SECOND, as_secs, write_number, "a count of whole seconds");
-    unit!(millis, Timedelta, MILLISECOND, as_millis, write_number, "a count of whole milliseconds");
-    unit!(micros, Timedelta, MICROSECOND, as_micros, write_number, "a count of whole microseconds");
-    unit!(nanos, Timedelta, NANOSECOND, as_nanos, write_number, "a count of nanoseconds");
+    count_module!(
+        secs,
+        Timedelta,
+        as_secs,
+        NANOS_PER_SECOND,
+        write_number,
+        "a count of whole seconds",
+    );
+    count_module!(
+        millis,
+        Timedelta,
+        as_millis,
+        NANOS_PER_MILLISECOND,
+        write_number,
+        "a count of whole milliseconds",
+    );
+    count_module!(
+        micros,
+        Timedelta,
+        as_micros,
+        NANOS_PER_MICROSECOND,
+        write_number,
+        "a count of whole microseconds",
+    );
+    count_module!(
+        nanos,
+        Timedelta,
+        as_nanos,
+        NANOS_PER_NANOSECOND,
+        write_number,
+        "a count of nanoseconds",
+    );
 }
 
 #[cfg(test)]
@@ -213,24 +261,26 @@ mod tests {
     use alloc::string::ToString as _;
 
     use serde::{Deserialize, Serialize};
+    use serde_json::{from_str, to_string};
     use serde_test::{Configure as _, Token, assert_tokens};
 
+    use super::{timedelta, timestamp};
     use crate::{Timedelta, Timestamp};
 
     /// One field for each kind of module.
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct Fields {
         /// Whole seconds.
-        #[serde(with = "crate::serde::timestamp::secs")]
+        #[serde(with = "timestamp::secs")]
         expiry: Timestamp,
         /// Nanoseconds, written as a string.
-        #[serde(with = "crate::serde::timestamp::nanos")]
+        #[serde(with = "timestamp::nanos")]
         exact: Timestamp,
         /// A span counted in milliseconds.
-        #[serde(with = "crate::serde::timedelta::millis")]
+        #[serde(with = "timedelta::millis")]
         poll: Timedelta,
         /// A span that may be absent.
-        #[serde(with = "crate::serde::timedelta::nanos::option")]
+        #[serde(with = "timedelta::nanos::option")]
         budget: Option<Timedelta>,
     }
 
@@ -245,18 +295,18 @@ mod tests {
     /// Whether reading `expiry` through `timestamp::secs` fails with a message opening `message`.
     fn is_refused(expiry: &str, message: &str) -> bool {
         let document = format!(r#"{{"expiry":{expiry},"exact":"0","poll":0,"budget":null}}"#);
-        serde_json::from_str::<Fields>(&document)
-            .is_err_and(|error| error.to_string().starts_with(message))
+        from_str::<Fields>(&document).is_err_and(|error| error.to_string().starts_with(message))
     }
 
     #[test]
     fn each_unit_round_trips_as_its_count() {
-        let written = serde_json::to_string(&FIELDS).expect("a document");
+        let written = to_string(&FIELDS).expect("a document");
         assert_eq!(
             written,
-            r#"{"expiry":1700000300,"exact":"1789544735123456789","poll":250,"budget":500}"#
+            r#"{"expiry":1700000300,"exact":"1789544735123456789","poll":250,"budget":500}"#,
+            "each field as a count in its unit"
         );
-        assert_eq!(serde_json::from_str::<Fields>(&written).expect("the fields"), FIELDS);
+        assert_eq!(from_str::<Fields>(&written).expect("the fields"), FIELDS, "and back");
     }
 
     #[test]
@@ -281,11 +331,11 @@ mod tests {
 
     #[test]
     fn a_count_is_read_quoted_or_bare() {
-        let read: Fields = serde_json::from_str(
+        let read: Fields = from_str(
             r#"{"expiry":"1700000300","exact":1789544735123456789,"poll":"250","budget":null}"#,
         )
         .expect("the fields");
-        assert_eq!(read, Fields { budget: None, ..FIELDS });
+        assert_eq!(read, Fields { budget: None, ..FIELDS }, "each count, however it came");
     }
 
     #[test]

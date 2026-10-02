@@ -2,7 +2,8 @@
 
 use core::ops::{Add, Sub};
 
-/// A point on one timeline, carried as an `i64`, with the span between two of them.
+/// A point on one timeline, carried as a count of its unit since the timeline's origin, with the
+/// span between two of them.
 ///
 /// Every point here implements it, and so may a type of your own that wraps one, to work with code
 /// generic over points.
@@ -17,7 +18,7 @@ use core::ops::{Add, Sub};
 ///
 /// let stamp = Timestamp::from_secs(10);
 /// assert_eq!(age(stamp, stamp + Timedelta::SECOND), Timedelta::SECOND, "any point's age");
-/// assert_eq!(Timestamp::from_i64(stamp.to_i64()), stamp, "and its count round trips");
+/// assert_eq!(Timestamp::from_count(stamp.count()), stamp, "and its count round trips");
 /// ```
 pub trait TimePoint:
     Copy + Ord + Add<Self::Span, Output = Self> + Sub<Output = Self::Span>
@@ -25,11 +26,11 @@ pub trait TimePoint:
     /// The span between two points.
     type Span: Copy + Ord;
 
-    /// The point whose count is `value`.
+    /// The point `count` units after the origin.
     #[must_use]
-    fn from_i64(value: i64) -> Self;
+    fn from_count(count: i64) -> Self;
 
-    /// The point's count.
+    /// The point's count of units since the origin.
     #[must_use]
-    fn to_i64(self) -> i64;
+    fn count(self) -> i64;
 }

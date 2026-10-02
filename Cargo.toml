@@ -12,13 +12,17 @@ repository   = "https://github.com/atomix-labs/t2t"
 
 [workspace.dependencies]
 # external
+arrayvec    = { version = "0.7.8", default-features = false }
+cfg_aliases = { version = "0.2.2" }
 chrono      = { version = "0.4.45", default-features = false }
+derive_more = { version = "2.1.1", default-features = false }
 divan       = { version = "0.1.21" }
 fancy-regex = { version = "0.19.2" }
 itoa        = { version = "1.0.18", default-features = false }
 jiff        = { version = "0.2.37", default-features = false }
 libc        = { version = "0.2.189", default-features = false }
 loom        = { version = "0.7.2" }
+powerfmt    = { version = "0.2.0", default-features = false }
 proptest    = { version = "1.11.0" }
 raw-cpuid   = { version = "11.6.0", default-features = false }
 rstest      = { version = "0.27.0", default-features = false }
@@ -27,7 +31,6 @@ serde       = { version = "1.0.229", features = ["derive"] }
 serde_core  = { version = "1.0.229", default-features = false }
 serde_json  = { version = "1.0.151" }
 serde_test  = { version = "1.0.177" }
-thiserror   = { version = "2.0.21", default-features = false }
 time        = { version = "0.3.55", default-features = false }
 trybuild    = { version = "1.0.121" }
 zerocopy    = { version = "0.8.59", default-features = false, features = ["derive"] }

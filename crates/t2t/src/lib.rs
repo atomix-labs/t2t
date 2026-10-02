@@ -1,21 +1,20 @@
 //! Time values and the clocks that read them, for code where a nanosecond counts.
 //!
-//! Each timeline has its own point and its own clocks, so a reading from one is never subtracted
+//! Each timeline has its own type and its own clocks, so a reading from one is never subtracted
 //! from another's:
 //!
-//! ```text
-//! point          timeline                                   read by
-//! Timestamp      the wall clock, from the Unix epoch        SystemClock, CoarseSystemClock
-//! TaiTimestamp   International Atomic Time, from 1970 TAI   TaiClock
-//! Uptime         the monotonic clock, from near boot        MonotonicClock, CoarseMonotonicClock
-//! RawUptime      the monotonic clock at the hardware's rate RawMonotonicClock
-//! BootTime       the boot clock, counting suspensions       BootClock
-//! Tick           a hardware counter                         Counter
-//! Timedelta      the CPU time used, as a span               ProcessCpuClock, ThreadCpuClock
-//! ```
+//! | Reading          | Timeline                     | Read by                                  |
+//! | ---------------- | ---------------------------- | ---------------------------------------- |
+//! | [`Timestamp`]    | wall clock, from 1970 UTC    | `SystemClock`, `CoarseSystemClock`       |
+//! | [`TaiTimestamp`] | TAI, from 1970 TAI           | `TaiClock`                               |
+//! | [`Uptime`]       | monotonic clock, near boot   | `MonotonicClock`, `CoarseMonotonicClock` |
+//! | [`RawUptime`]    | monotonic clock, unslewed    | `RawMonotonicClock`                      |
+//! | [`BootTime`]     | boot clock, with suspensions | `BootClock`                              |
+//! | [`Tick`]         | hardware counter             | [`Counter`](clock::Counter)              |
+//! | [`Timedelta`]    | CPU time used, a span        | `ProcessCpuClock`, `ThreadCpuClock`      |
 //!
-//! The span between two points is a `Timedelta`, or for a `Tick`, a count of `Ticks` that its
-//! counter's `TickRate` turns into one.
+//! The span between two points is a [`Timedelta`], or for a [`Tick`], a count of [`Ticks`] that
+//! its counter's [`TickRate`] turns into one.
 //!
 //! Every point and span is an `i64`, every operator saturates at the ends of the range, with a
 //! `checked_*` twin, and every clock answers one verb, [`now`](clock::Clock::now). A workspace that
@@ -30,13 +29,14 @@
 //!   timeout`.
 //! - **Measure with [`Counter`](clock::Counter).** One instruction that touches no memory, and one
 //!   counter for every core and process on the machine.
-//! - **Poll with `CoarseSystemClock` or `CoarseMonotonicClock`.** Either clock as the kernel's last
-//!   tick left it, which reads no counter; never for a stamp.
+//! - **Poll with `CoarseSystemClock` or `CoarseMonotonicClock`.** Either clock as the kernel's
+//!   timer last left it, which reads no counter; never for a stamp.
 //! - **Drive a test or a replay with [`ManualClock`](clock::ManualClock)**, or
 //!   [`AtomicManualClock`](clock::AtomicManualClock) across threads.
 //!
 //! The OS clocks need the `std` feature, on 64-bit Linux or macOS; [`clock`] has them all.
 //!
+//! # Examples
 //! ```
 //! use t2t::clock::{Clock, ManualClock};
 //! use t2t::{Timed, Timedelta, Timestamp};
@@ -48,20 +48,20 @@
 //! assert!(quote.elapsed(clock.now()) > Timedelta::SECOND, "stale a second and a half on");
 //! ```
 //!
-//! # Crate features
+//! # Crate Features
 //!
 //! None is on by default, and nothing reaches the operating system unless `std` is named; what
 //! `std` adds is on 64-bit Linux and macOS.
 //!
-//! | Feature     | Adds                                                                                |
-//! | ----------- | ----------------------------------------------------------------------------------- |
-//! | `std`       | the OS clocks, `SystemTime` conversions, and an `x86_64` counter's measured rate    |
-//! | `serde`     | the string spellings, and the `serde` modules for counts in a named unit            |
-//! | `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                      |
-//! | `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them              |
-//! | `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`     |
-//! | `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration` |
-//! | `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`  |
+//! | Feature     | Adds                                                                         |
+//! | ----------- | ---------------------------------------------------------------------------- |
+//! | `std`       | the OS clocks, an `x86_64` counter's measured rate, `SystemTime` conversions |
+//! | `serde`     | every value's spelling, and the `serde` modules for counts in a named unit   |
+//! | `schemars`  | `JsonSchema` for every value with a spelling; turns `serde` on               |
+//! | `zerocopy`  | the zerocopy traits each type can honour, native-endian                      |
+//! | `chrono-04` | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`              |
+//! | `jiff-02`   | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
+//! | `time-03`   | conversions to and from time 0.3's `OffsetDateTime` and `Duration`           |
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -72,6 +72,7 @@ pub use t2t_clock as clock;
 #[doc(inline)]
 pub use t2t_core::serde;
 pub use t2t_core::{
-    BootTime, OutOfRangeError, ParseTimedeltaError, ParseTimestampError, RawUptime, TaiTimestamp,
-    Tick, TickRate, Ticks, TimePoint, Timed, Timedelta, Timestamp, Uptime, UtcDateTime,
+    BootTime, OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTicksError,
+    ParseTimedeltaError, ParseTimestampError, RawUptime, TaiTimestamp, Tick, TickRate, Ticks,
+    TimePoint, Timed, Timedelta, Timestamp, Uptime, UtcDateTime,
 };

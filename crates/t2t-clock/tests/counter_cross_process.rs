@@ -1,9 +1,8 @@
 //! Two processes read one counter: a reading a child process takes lies between two its parent
 //! takes around the child's whole life, which no per-process counter would.
 
-#![cfg(not(miri))]
-
 #[cfg(test)]
+#[cfg(counter)]
 mod tests {
     use std::env;
     use std::process::Command;
@@ -15,10 +14,11 @@ mod tests {
     const CHILD: &str = "T2T_COUNTER_CHILD";
 
     #[test]
+    #[cfg_attr(miri, ignore = "Miri runs no child process")]
     fn a_reading_one_process_takes_another_may_subtract_from() {
         let counter = Counter::discover().expect("a counter with a rate");
         if env::var_os(CHILD).is_some() {
-            println!("{}", counter.now().get());
+            println!("{}", counter.now());
             return;
         }
 
@@ -32,13 +32,13 @@ mod tests {
         let end = counter.now();
 
         assert!(output.status.success(), "the child succeeded: {output:?}");
-        let child_reading = String::from_utf8_lossy(&output.stdout)
+        let child_reading: Tick = String::from_utf8_lossy(&output.stdout)
             .lines()
             .find_map(|line| line.trim().parse().ok())
-            .map(Tick::new)
             .expect("the child printed a reading");
-        assert!(start < child_reading, "the child read after the parent began: {start:?}");
-        assert!(child_reading < end, "and before the parent ended: {end:?}");
-        assert!(counter.timedelta(end - start) < Timedelta::from_secs(30), "a quick child");
+        assert!(start < child_reading, "the child read after the parent began: {start}");
+        assert!(child_reading < end, "and before the parent ended: {end}");
+        let took = (end - start).to_timedelta(counter.rate());
+        assert!(took < Timedelta::from_secs(30), "a quick child: {took}");
     }
 }

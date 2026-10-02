@@ -3,11 +3,13 @@
 
 #![no_main]
 
+use core::str;
+
 use libfuzzer_sys::{Corpus, fuzz_target};
 use t2t_core::Timedelta;
 
 fuzz_target!(|data: &[u8]| -> Corpus {
-    let Ok(text) = core::str::from_utf8(data) else {
+    let Ok(text) = str::from_utf8(data) else {
         return Corpus::Reject;
     };
     if let Ok(span) = text.parse::<Timedelta>() {

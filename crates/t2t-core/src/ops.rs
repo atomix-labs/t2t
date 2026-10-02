@@ -3,12 +3,13 @@
 use core::iter::Sum;
 use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use crate::timedelta::{NANOS_PER_MICRO, NANOS_PER_MILLI, NANOS_PER_SEC};
+use crate::consts::{NANOS_PER_MICROSECOND, NANOS_PER_MILLISECOND, NANOS_PER_SECOND};
 use crate::{
     BootTime, RawUptime, TaiTimestamp, Tick, Ticks, TimePoint, Timedelta, Timestamp, Uptime,
 };
 
 /// The nearest multiple of `|unit|` at or below `value`, or `value` for a zero unit.
+#[inline]
 const fn floor(value: i64, unit: i64) -> i64 {
     match value.checked_rem_euclid(unit) {
         Some(remainder) => value.saturating_sub(remainder),
@@ -17,6 +18,7 @@ const fn floor(value: i64, unit: i64) -> i64 {
 }
 
 /// The nearest multiple of `|unit|` at or above `value`, or `value` for a zero unit.
+#[inline]
 const fn ceil(value: i64, unit: i64) -> i64 {
     match value.checked_rem_euclid(unit) {
         Some(0) | None => value,
@@ -26,17 +28,11 @@ const fn ceil(value: i64, unit: i64) -> i64 {
     }
 }
 
-/// `value` divided by a positive `divisor`, rounded down.
-const fn floor_div(value: i64, divisor: i64) -> i64 {
-    match value.checked_div_euclid(divisor) {
-        Some(quotient) => quotient,
-        None => 0,
-    }
-}
-
-/// A span's constants, sign, checked arithmetic and saturating operators.
+/// A span's layout, constants, sign, checked arithmetic and saturating operators.
 macro_rules! span {
     ($span:ident) => {
+        const _: () = assert!(size_of::<$span>() == size_of::<i64>(), "an `i64`, and nothing else");
+
         impl $span {
             /// No time at all.
             pub const ZERO: Self = Self(0);
@@ -241,9 +237,12 @@ macro_rules! span {
     };
 }
 
-/// A point's constants, checked arithmetic and saturating operators over its span.
+/// A point's layout, constants, checked arithmetic and saturating operators over its span.
 macro_rules! point {
     ($point:ident, $span:ident) => {
+        const _: () =
+            assert!(size_of::<$point>() == size_of::<i64>(), "an `i64`, and nothing else");
+
         impl $point {
             /// The earliest point the count holds.
             pub const MIN: Self = Self(i64::MIN);
@@ -347,12 +346,12 @@ macro_rules! point {
             type Span = $span;
 
             #[inline]
-            fn from_i64(value: i64) -> Self {
-                Self(value)
+            fn from_count(count: i64) -> Self {
+                Self(count)
             }
 
             #[inline]
-            fn to_i64(self) -> i64 {
+            fn count(self) -> i64 {
                 self.0
             }
         }
@@ -374,21 +373,21 @@ macro_rules! nanosecond_units {
             #[inline]
             #[must_use]
             pub const fn from_micros(micros: i64) -> Self {
-                Self(micros.saturating_mul(NANOS_PER_MICRO))
+                Self(micros.saturating_mul(NANOS_PER_MICROSECOND))
             }
 
             #[doc = concat!("The point `millis` milliseconds after ", $origin, ", saturating.")]
             #[inline]
             #[must_use]
             pub const fn from_millis(millis: i64) -> Self {
-                Self(millis.saturating_mul(NANOS_PER_MILLI))
+                Self(millis.saturating_mul(NANOS_PER_MILLISECOND))
             }
 
             #[doc = concat!("The point `secs` seconds after ", $origin, ", saturating.")]
             #[inline]
             #[must_use]
             pub const fn from_secs(secs: i64) -> Self {
-                Self(secs.saturating_mul(NANOS_PER_SEC))
+                Self(secs.saturating_mul(NANOS_PER_SECOND))
             }
 
             #[doc = concat!("Nanoseconds since ", $origin, ".")]
@@ -402,21 +401,21 @@ macro_rules! nanosecond_units {
             #[inline]
             #[must_use]
             pub const fn as_micros(self) -> i64 {
-                floor_div(self.0, NANOS_PER_MICRO)
+                self.0.div_euclid(NANOS_PER_MICROSECOND)
             }
 
             #[doc = concat!("Whole milliseconds since ", $origin, ", rounded down.")]
             #[inline]
             #[must_use]
             pub const fn as_millis(self) -> i64 {
-                floor_div(self.0, NANOS_PER_MILLI)
+                self.0.div_euclid(NANOS_PER_MILLISECOND)
             }
 
             #[doc = concat!("Whole seconds since ", $origin, ", rounded down.")]
             #[inline]
             #[must_use]
             pub const fn as_secs(self) -> i64 {
-                floor_div(self.0, NANOS_PER_SEC)
+                self.0.div_euclid(NANOS_PER_SECOND)
             }
         }
     };
@@ -449,55 +448,66 @@ mod tests {
     #[test]
     fn floor_and_ceil_tile_the_line_on_both_sides_of_zero() {
         let unit = Timedelta::MICROSECOND;
-        assert_eq!(Timestamp::from_nanos(10_500).floor(unit), Timestamp::from_nanos(10_000));
-        assert_eq!(Timestamp::from_nanos(10_500).ceil(unit), Timestamp::from_nanos(11_000));
-        assert_eq!(Timestamp::from_nanos(-10_500).floor(unit), Timestamp::from_nanos(-11_000));
-        assert_eq!(Timestamp::from_nanos(-10_500).ceil(unit), Timestamp::from_nanos(-10_000));
-        assert_eq!(Timestamp::from_nanos(11_000).ceil(unit), Timestamp::from_nanos(11_000));
+        let (after, before) = (Timestamp::from_nanos(10_500), Timestamp::from_nanos(-10_500));
+        assert_eq!(after.floor(unit), Timestamp::from_nanos(10_000), "down, after the epoch");
+        assert_eq!(after.ceil(unit), Timestamp::from_nanos(11_000), "and up");
+        assert_eq!(before.floor(unit), Timestamp::from_nanos(-11_000), "down, before it");
+        assert_eq!(before.ceil(unit), Timestamp::from_nanos(-10_000), "and up");
+        let multiple = Timestamp::from_nanos(11_000);
+        assert_eq!(multiple.ceil(unit), multiple, "a multiple stays where it is");
     }
 
     #[test]
     fn floor_and_ceil_take_the_units_magnitude_and_pass_over_a_zero_unit() {
         let instant = Timestamp::from_nanos(10_500);
-        assert_eq!(instant.floor(-Timedelta::MICROSECOND), Timestamp::from_nanos(10_000));
-        assert_eq!(instant.floor(Timedelta::ZERO), instant);
-        assert_eq!(Timestamp::from_nanos(-5).ceil(Timedelta::MIN), Timestamp::UNIX_EPOCH);
+        let backwards = -Timedelta::MICROSECOND;
+        assert_eq!(instant.floor(backwards), Timestamp::from_nanos(10_000), "a backwards unit");
+        assert_eq!(instant.floor(Timedelta::ZERO), instant, "no unit");
+        let longest = Timestamp::from_nanos(-5).ceil(Timedelta::MIN);
+        assert_eq!(longest, Timestamp::UNIX_EPOCH, "the longest unit, whose magnitude is no `i64`");
     }
 
     #[test]
     fn point_arithmetic_saturates_and_its_checked_twin_refuses() {
         let span = Timedelta::NANOSECOND;
-        assert_eq!(Timestamp::MAX + span, Timestamp::MAX);
-        assert_eq!(Timestamp::MIN - span, Timestamp::MIN);
-        assert_eq!(Timestamp::MAX.checked_add(span), None);
-        assert_eq!(Timestamp::MIN.checked_sub(span), None);
-        assert_eq!(Timestamp::MAX - Timestamp::MIN, Timedelta::MAX);
-        assert_eq!(Timestamp::MAX.checked_since(Timestamp::MIN), None);
-        assert_eq!(Tick::new(1_025) - Tick::new(1_000), Ticks::new(25));
-        assert_eq!(Tick::new(1_000) - Tick::new(1_025), Ticks::new(-25));
+        assert_eq!(Timestamp::MAX + span, Timestamp::MAX, "a point past the end saturates");
+        assert_eq!(Timestamp::MIN - span, Timestamp::MIN, "at both ends");
+        assert_eq!(Timestamp::MAX.checked_add(span), None, "and its checked twin refuses");
+        assert_eq!(Timestamp::MIN.checked_sub(span), None, "at both ends");
+        let widest = Timestamp::MAX - Timestamp::MIN;
+        assert_eq!(widest, Timedelta::MAX, "a span past its range saturates");
+        assert_eq!(Timestamp::MAX.checked_since(Timestamp::MIN), None, "or is refused");
+        let (start, end) = (Tick::from_ticks(1_000), Tick::from_ticks(1_025));
+        assert_eq!(end - start, Ticks::from_ticks(25), "a later reading minus an earlier");
+        assert_eq!(start - end, Ticks::from_ticks(-25), "and the other way about");
     }
 
     #[test]
     fn span_arithmetic_saturates_and_its_checked_twin_refuses() {
         let ten = Timedelta::from_nanos(10);
-        assert_eq!(-ten + ten * 3, Timedelta::from_nanos(20));
-        assert_eq!(3 * ten, ten * 3);
-        assert_eq!(Timedelta::MAX + ten, Timedelta::MAX);
-        assert_eq!(-Timedelta::MIN, Timedelta::MAX);
-        assert_eq!(Timedelta::MIN.abs(), Timedelta::MAX);
-        assert_eq!(Timedelta::MIN.checked_abs(), None);
-        assert_eq!(Timedelta::MIN.checked_neg(), None);
-        assert_eq!(ten.checked_div(0), None);
-        assert_eq!(Timedelta::MIN.checked_div(-1), None);
-        assert_eq!(Timedelta::from_nanos(-7).checked_div(2), Some(Timedelta::from_nanos(-3)));
-        assert_eq!([ten, ten, ten].iter().sum::<Timedelta>(), ten * 3);
+        assert_eq!(-ten + ten * 3, Timedelta::from_nanos(20), "negation, sum and product");
+        assert_eq!(3 * ten, ten * 3, "a factor on either side");
+        assert_eq!([ten, ten, ten].iter().sum::<Timedelta>(), ten * 3, "and a sum of many");
+        assert_eq!(Timedelta::MAX + ten, Timedelta::MAX, "past the end saturates");
+        assert_eq!(-Timedelta::MIN, Timedelta::MAX, "so does the negation with no twin");
+        assert_eq!(Timedelta::MIN.abs(), Timedelta::MAX, "and the magnitude");
+        assert_eq!(Timedelta::MIN.checked_abs(), None, "which the checked twins refuse");
+        assert_eq!(Timedelta::MIN.checked_neg(), None, "both");
+        assert_eq!(ten.checked_div(0), None, "no parts");
+        assert_eq!(Timedelta::MIN.checked_div(-1), None, "a quotient past the range");
+        let part = Timedelta::from_nanos(-7).checked_div(2);
+        assert_eq!(part, Some(Timedelta::from_nanos(-3)), "truncated toward zero");
     }
 
     #[test]
     fn nanosecond_accessors_round_down_before_the_origin() {
         assert_eq!(Timestamp::from_nanos(-1).as_secs(), -1, "the second it falls in");
-        assert_eq!(Uptime::from_secs(90).as_millis(), 90_000);
-        assert_eq!(Timestamp::from_secs(i64::MAX), Timestamp::MAX, "saturating");
+        assert_eq!(Uptime::from_secs(90).as_millis(), 90_000, "a coarser unit, counted finer");
+        assert_eq!(
+            Timestamp::from_secs(i64::MAX),
+            Timestamp::MAX,
+            "a count past the range saturates"
+        );
     }
 
     proptest! {
@@ -514,8 +524,11 @@ mod tests {
             let multiple = Timestamp::from_nanos(value).floor(Timedelta::from_nanos(unit));
             prop_assume!(multiple != Timestamp::MIN, "saturated");
             let distance = value.checked_sub(multiple.as_nanos());
-            prop_assert_eq!(multiple.as_nanos().rem_euclid(unit), 0);
-            prop_assert!(distance.is_some_and(|distance| (0..unit).contains(&distance)));
+            prop_assert_eq!(multiple.as_nanos().rem_euclid(unit), 0, "a multiple of the unit");
+            prop_assert!(
+                distance.is_some_and(|distance| (0..unit).contains(&distance)),
+                "less than a unit below"
+            );
         }
     }
 }

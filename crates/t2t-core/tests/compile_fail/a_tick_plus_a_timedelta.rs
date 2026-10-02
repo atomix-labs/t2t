@@ -3,5 +3,5 @@
 use t2t_core::{Tick, Timedelta};
 
 fn main() {
-    let _later = Tick::new(10) + Timedelta::SECOND;
+    let _later = Tick::from_ticks(10) + Timedelta::SECOND;
 }

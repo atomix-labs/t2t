@@ -2,8 +2,10 @@
 
 #[cfg(test)]
 mod tests {
+    use trybuild::TestCases;
+
     #[test]
     fn each_misuse_fails_to_compile() {
-        trybuild::TestCases::new().compile_fail("tests/compile_fail/*.rs");
+        TestCases::new().compile_fail("tests/compile_fail/*.rs");
     }
 }

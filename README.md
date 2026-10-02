@@ -3,7 +3,7 @@
 
 <h1 align="center">t2t</h1>
 
-<p align="center">A time, counter and clock library.</p>
+<p align="center">Time values and the clocks that read them, for code where a nanosecond counts.</p>
 
 <p align="center">
   <a href="https://github.com/atomix-labs/t2t/actions/workflows/check.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/atomix-labs/t2t/check.yml?branch=main&amp;style=flat-square&amp;label=check"></a>
@@ -15,12 +15,13 @@
 <!-- dprint-ignore-end -->
 <!-- <<< devset: project <<< -->
 
-t2t holds the time a program reads and carries: instants on the wall, monotonic,
+t2t holds the time a program reads and carries: points on the wall, monotonic,
 boot and atomic timelines, a hardware counter's readings, the spans between
 them, and the clocks that read each. Every point and span is one `i64`, and
 every timeline its own type, so a reading from one clock is never subtracted
-from another's; every operator saturates rather than overflows. Nothing reaches
-the operating system unless the `std` feature asks.
+from another's; every operator saturates rather than overflows, and every value
+has a spelling it writes and reads back. Nothing reaches the operating system
+unless the `std` feature asks.
 
 | Crate       | What it holds                                                        |
 | ----------- | -------------------------------------------------------------------- |
@@ -57,32 +58,34 @@ clock's reading, and what one costs on the machine it runs on.
 
 ## Clocks
 
-| Clock                  | Reads          | For                                         |
-| ---------------------- | -------------- | ------------------------------------------- |
-| `SystemClock`          | `Timestamp`    | stamping a capture other machines compare   |
-| `CoarseSystemClock`    | `Timestamp`    | asking whether a heartbeat or expiry is due |
-| `TaiClock` (Linux)     | `TaiTimestamp` | a stamp on the timescale PTP keeps          |
-| `MonotonicClock`       | `Uptime`       | a deadline, a timeout                       |
-| `CoarseMonotonicClock` | `Uptime`       | a far deadline, polled often                |
-| `RawMonotonicClock`    | `RawUptime`    | a span no time service's slewing touches    |
-| `BootClock`            | `BootTime`     | a timeout that runs on through a suspension |
-| `ProcessCpuClock`      | `Timedelta`    | the CPU time the process has used           |
-| `ThreadCpuClock`       | `Timedelta`    | the CPU time the calling thread has used    |
-| `Counter`              | `Tick`         | a stamp or a span in one instruction        |
-| `ManualClock`          | any point      | a test or a replay on one thread            |
-| `AtomicManualClock`    | any point      | a test or a replay shared across threads    |
+| Clock                  | Reads          | Steps?  | For                                      |
+| ---------------------- | -------------- | ------- | ---------------------------------------- |
+| `SystemClock`          | `Timestamp`    | yes     | a stamp other machines compare           |
+| `CoarseSystemClock`    | `Timestamp`    | yes     | whether a heartbeat or expiry is due     |
+| `TaiClock` (Linux)     | `TaiTimestamp` | never   | a stamp on the timescale PTP keeps       |
+| `MonotonicClock`       | `Uptime`       | never   | a deadline, a timeout                    |
+| `CoarseMonotonicClock` | `Uptime`       | never   | a far deadline, polled often             |
+| `RawMonotonicClock`    | `RawUptime`    | never   | a span no time service's slewing touches |
+| `BootClock`            | `BootTime`     | never   | a timeout that runs through a suspension |
+| `ProcessCpuClock`      | `Timedelta`    | never   | the CPU time the process has used        |
+| `ThreadCpuClock`       | `Timedelta`    | never   | the CPU time the calling thread has used |
+| `Counter`              | `Tick`         | never   | a stamp or a span in one instruction     |
+| `ManualClock`          | any point      | by hand | a test or a replay on one thread         |
+| `AtomicManualClock`    | any point      | by hand | a test or a replay shared across threads |
 
 ## Features
 
-| Feature     | Adds                                                                                         |
-| ----------- | -------------------------------------------------------------------------------------------- |
-| `std`       | on 64-bit Linux and macOS: the OS clocks, `SystemTime` conversions, an x86_64 counter's rate |
-| `serde`     | the string spellings, and modules for counts in a named unit                                 |
-| `schemars`  | `JsonSchema` for `Timestamp` and `Timedelta`; turns `serde` on                               |
-| `zerocopy`  | `FromBytes`, `IntoBytes` and the rest, where each type can honour them                       |
-| `chrono-04` | `Timestamp` and `Timedelta` to and from chrono 0.4's `DateTime` and `TimeDelta`              |
-| `jiff-02`   | `Timestamp` and `Timedelta` to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
-| `time-03`   | `Timestamp` and `Timedelta` to and from time 0.3's `OffsetDateTime` and `Duration`           |
+What `std` adds is on 64-bit Linux and macOS.
+
+| Feature     | Adds                                                                         |
+| ----------- | ---------------------------------------------------------------------------- |
+| `std`       | the OS clocks, an `x86_64` counter's measured rate, `SystemTime` conversions |
+| `serde`     | every value's spelling, and the `serde` modules for counts in a named unit   |
+| `schemars`  | `JsonSchema` for every value with a spelling; turns `serde` on               |
+| `zerocopy`  | the zerocopy traits each type can honour, native-endian                      |
+| `chrono-04` | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`              |
+| `jiff-02`   | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
+| `time-03`   | conversions to and from time 0.3's `OffsetDateTime` and `Duration`           |
 
 None is on by default: `cargo add t2t --git https://github.com/atomix-labs/t2t
 --features std,serde`.

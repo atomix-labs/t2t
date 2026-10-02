@@ -3,7 +3,7 @@
 /// A clock: what time it is now.
 ///
 /// The type a clock reads says which timeline its readings are on, so readings of two timelines
-/// never mix.
+/// never mix: a point for a clock that names a moment, and a span for one that counts CPU time.
 ///
 /// # Examples
 /// ```
@@ -16,11 +16,11 @@
 /// struct StepClock(Cell<i64>);
 ///
 /// impl Clock for StepClock {
-///     type Instant = Tick;
+///     type Reading = Tick;
 ///
 ///     fn now(&self) -> Tick {
 ///         self.0.set(self.0.get() + 1);
-///         Tick::new(self.0.get())
+///         Tick::from_ticks(self.0.get())
 ///     }
 /// }
 ///
@@ -29,17 +29,18 @@
 /// ```
 pub trait Clock {
     /// What the clock reads.
-    type Instant: Copy;
+    type Reading: Copy;
 
     /// The time now.
-    fn now(&self) -> Self::Instant;
+    #[must_use]
+    fn now(&self) -> Self::Reading;
 }
 
 impl<C: Clock + ?Sized> Clock for &C {
-    type Instant = C::Instant;
+    type Reading = C::Reading;
 
     #[inline]
-    fn now(&self) -> Self::Instant {
+    fn now(&self) -> Self::Reading {
         (**self).now()
     }
 }

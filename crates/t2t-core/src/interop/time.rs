@@ -8,8 +8,7 @@ use crate::{OutOfRangeError, Timedelta, Timestamp};
 impl From<Timestamp> for OffsetDateTime {
     #[inline]
     fn from(instant: Timestamp) -> Self {
-        // time refuses only an instant past its years, which no timestamp reaches.
-        Self::from_unix_timestamp_nanos(i128::from(instant.0)).unwrap_or(Self::UNIX_EPOCH)
+        Self::UNIX_EPOCH.saturating_add(Duration::nanoseconds(instant.0))
     }
 }
 
@@ -19,10 +18,13 @@ impl TryFrom<OffsetDateTime> for Timestamp {
 
     #[inline]
     fn try_from(instant: OffsetDateTime) -> Result<Self, Self::Error> {
-        i64::try_from(instant.unix_timestamp_nanos()).ok().map(Self).ok_or(OutOfRangeError)
+        i64::try_from(instant.unix_timestamp_nanos())
+            .map(Self)
+            .map_err(|_past_the_range| OutOfRangeError)
     }
 }
 
+/// Every span, since a `Duration` holds every `i64` of nanoseconds.
 impl From<Timedelta> for Duration {
     #[inline]
     fn from(span: Timedelta) -> Self {
@@ -36,7 +38,9 @@ impl TryFrom<Duration> for Timedelta {
 
     #[inline]
     fn try_from(duration: Duration) -> Result<Self, Self::Error> {
-        i64::try_from(duration.whole_nanoseconds()).ok().map(Self).ok_or(OutOfRangeError)
+        i64::try_from(duration.whole_nanoseconds())
+            .map(Self)
+            .map_err(|_past_the_range| OutOfRangeError)
     }
 }
 
@@ -54,7 +58,11 @@ mod tests {
     #[case::the_latest(Timestamp::MAX)]
     fn an_instant_crosses_both_ways(#[case] instant: Timestamp) {
         let theirs = OffsetDateTime::from(instant);
-        assert_eq!(theirs.unix_timestamp_nanos(), i128::from(instant.as_nanos()), "the same");
+        assert_eq!(
+            theirs.unix_timestamp_nanos(),
+            i128::from(instant.as_nanos()),
+            "the same instant"
+        );
         assert_eq!(theirs.offset(), UtcOffset::UTC, "in UTC");
         assert_eq!(Timestamp::try_from(theirs), Ok(instant), "and back");
     }
@@ -64,15 +72,15 @@ mod tests {
         let instant = Timestamp::from_nanos(1_789_544_735_123_456_789);
         let offset = UtcOffset::from_hms(5, 0, 0).expect("five hours east is an offset");
         let elsewhere = OffsetDateTime::from(instant).to_offset(offset);
-        assert_eq!(Timestamp::try_from(elsewhere), Ok(instant));
+        assert_eq!(Timestamp::try_from(elsewhere), Ok(instant), "read in UTC");
     }
 
     #[test]
     fn an_instant_past_the_range_is_refused() {
         let far_future = OffsetDateTime::UNIX_EPOCH.saturating_add(Duration::MAX);
         let distant_past = OffsetDateTime::UNIX_EPOCH.saturating_add(Duration::MIN);
-        assert_eq!(Timestamp::try_from(far_future), Err(OutOfRangeError));
-        assert_eq!(Timestamp::try_from(distant_past), Err(OutOfRangeError));
+        assert_eq!(Timestamp::try_from(far_future), Err(OutOfRangeError), "after 2262");
+        assert_eq!(Timestamp::try_from(distant_past), Err(OutOfRangeError), "before 1677");
     }
 
     #[rstest]
@@ -87,7 +95,7 @@ mod tests {
 
     #[test]
     fn a_span_past_the_range_is_refused() {
-        assert_eq!(Timedelta::try_from(Duration::MAX), Err(OutOfRangeError));
-        assert_eq!(Timedelta::try_from(Duration::MIN), Err(OutOfRangeError));
+        assert_eq!(Timedelta::try_from(Duration::MAX), Err(OutOfRangeError), "forwards");
+        assert_eq!(Timedelta::try_from(Duration::MIN), Err(OutOfRangeError), "and backwards");
     }
 }

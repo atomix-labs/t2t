@@ -4,6 +4,7 @@ use chrono::{DateTime, TimeDelta, TimeZone, Utc};
 
 use crate::{OutOfRangeError, Timedelta, Timestamp};
 
+/// Every timestamp, in UTC, since chrono's reach years -262143 to 262142.
 impl From<Timestamp> for DateTime<Utc> {
     #[inline]
     fn from(instant: Timestamp) -> Self {
@@ -12,15 +13,16 @@ impl From<Timestamp> for DateTime<Utc> {
 }
 
 /// Refuses an instant outside [`Timestamp::MIN`] to [`Timestamp::MAX`], in any zone.
-impl<Zone: TimeZone> TryFrom<DateTime<Zone>> for Timestamp {
+impl<Z: TimeZone> TryFrom<DateTime<Z>> for Timestamp {
     type Error = OutOfRangeError;
 
     #[inline]
-    fn try_from(instant: DateTime<Zone>) -> Result<Self, Self::Error> {
+    fn try_from(instant: DateTime<Z>) -> Result<Self, Self::Error> {
         instant.timestamp_nanos_opt().map(Self).ok_or(OutOfRangeError)
     }
 }
 
+/// Every span, since a `TimeDelta` holds every `i64` of nanoseconds.
 impl From<Timedelta> for TimeDelta {
     #[inline]
     fn from(span: Timedelta) -> Self {
@@ -28,7 +30,7 @@ impl From<Timedelta> for TimeDelta {
     }
 }
 
-/// Refuses a span past [`Timedelta::MIN`] or [`Timedelta::MAX`].
+/// Refuses a duration past [`Timedelta::MIN`] or [`Timedelta::MAX`].
 impl TryFrom<TimeDelta> for Timedelta {
     type Error = OutOfRangeError;
 
@@ -59,15 +61,23 @@ mod tests {
     #[test]
     fn an_instant_in_another_zone_is_the_same_instant() {
         let instant = Timestamp::from_nanos(1_789_544_735_123_456_789);
-        let zone = FixedOffset::east_opt(5 * 3_600).expect("five hours east is an offset");
+        let zone = FixedOffset::east_opt(18_000).expect("five hours east is an offset");
         let elsewhere = DateTime::<Utc>::from(instant).with_timezone(&zone);
-        assert_eq!(Timestamp::try_from(elsewhere), Ok(instant));
+        assert_eq!(Timestamp::try_from(elsewhere), Ok(instant), "read in UTC");
     }
 
     #[test]
     fn an_instant_past_the_range_is_refused() {
-        assert_eq!(Timestamp::try_from(DateTime::<Utc>::MAX_UTC), Err(OutOfRangeError));
-        assert_eq!(Timestamp::try_from(DateTime::<Utc>::MIN_UTC), Err(OutOfRangeError));
+        assert_eq!(
+            Timestamp::try_from(DateTime::<Utc>::MAX_UTC),
+            Err(OutOfRangeError),
+            "after 2262"
+        );
+        assert_eq!(
+            Timestamp::try_from(DateTime::<Utc>::MIN_UTC),
+            Err(OutOfRangeError),
+            "before 1677"
+        );
     }
 
     #[rstest]
@@ -82,7 +92,7 @@ mod tests {
 
     #[test]
     fn a_span_past_the_range_is_refused() {
-        assert_eq!(Timedelta::try_from(TimeDelta::MAX), Err(OutOfRangeError));
-        assert_eq!(Timedelta::try_from(TimeDelta::MIN), Err(OutOfRangeError));
+        assert_eq!(Timedelta::try_from(TimeDelta::MAX), Err(OutOfRangeError), "forwards");
+        assert_eq!(Timedelta::try_from(TimeDelta::MIN), Err(OutOfRangeError), "and backwards");
     }
 }

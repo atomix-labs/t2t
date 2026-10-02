@@ -1,41 +1,26 @@
 //! A signed span of nanoseconds, and its spelling.
 
-use core::fmt;
+use core::fmt::{self, Write as _};
 use core::str::FromStr;
 use core::time::Duration;
 
-use crate::text::Text;
-use crate::{OutOfRangeError, ParseTimedeltaError};
+use arrayvec::ArrayString;
+use derive_more::Debug;
+use itoa::Buffer;
+#[cfg(feature = "zerocopy")]
+use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
-/// Nanoseconds in a microsecond.
-pub(crate) const NANOS_PER_MICRO: i64 = 1_000;
-/// Nanoseconds in a millisecond.
-pub(crate) const NANOS_PER_MILLI: i64 = 1_000_000;
-/// Nanoseconds in a second.
-pub(crate) const NANOS_PER_SEC: i64 = 1_000_000_000;
-/// Nanoseconds in a minute.
-pub(crate) const NANOS_PER_MINUTE: i64 = 60 * NANOS_PER_SEC;
-/// Nanoseconds in an hour.
-pub(crate) const NANOS_PER_HOUR: i64 = 60 * NANOS_PER_MINUTE;
-/// Nanoseconds in a day of 24 hours.
-pub(crate) const NANOS_PER_DAY: i64 = 24 * NANOS_PER_HOUR;
-
-/// Each unit of the spelling, coarsest first: its suffix, and its nanoseconds.
-const UNITS: [(&str, u64); 7] = [
-    ("d", NANOS_PER_DAY.unsigned_abs()),
-    ("h", NANOS_PER_HOUR.unsigned_abs()),
-    ("m", NANOS_PER_MINUTE.unsigned_abs()),
-    ("s", NANOS_PER_SEC.unsigned_abs()),
-    ("ms", NANOS_PER_MILLI.unsigned_abs()),
-    ("us", NANOS_PER_MICRO.unsigned_abs()),
-    ("ns", 1),
-];
+use crate::consts::{
+    NANOS_PER_DAY, NANOS_PER_HOUR, NANOS_PER_MICROSECOND, NANOS_PER_MILLISECOND, NANOS_PER_MINUTE,
+    NANOS_PER_SECOND,
+};
+use crate::spelling::pad;
+use crate::{OutOfRangeError, ParseTimedeltaError, TickRate, Ticks};
 
 /// The longest spelling, [`Timedelta::MIN`]'s.
 const LONGEST: usize = "-106751d23h47m16s854ms775us808ns".len();
 
-/// A signed span of nanoseconds: how far apart two [`Timestamp`](crate::Timestamp)s or two
-/// [`Uptime`](crate::Uptime)s are.
+/// A signed span of nanoseconds: how far apart two points on one timeline are.
 ///
 /// Its operators saturate at [`MIN`](Self::MIN) and [`MAX`](Self::MAX), about 292 years either
 /// way, and each has a `checked_*` twin. It is written coarsest unit first, the way a config spells
@@ -51,24 +36,20 @@ const LONGEST: usize = "-106751d23h47m16s854ms775us808ns".len();
 /// assert_eq!("1m0s250ms".parse(), Ok(Timedelta::MINUTE + budget), "and read back");
 /// ```
 #[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-#[cfg_attr(
-    feature = "zerocopy",
-    derive(zerocopy::FromBytes, zerocopy::IntoBytes, zerocopy::Immutable, zerocopy::KnownLayout)
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[debug("{self}")]
+#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct Timedelta(pub(crate) i64);
-
-const _: () = assert!(size_of::<Timedelta>() == size_of::<i64>(), "an `i64`, and nothing else");
 
 impl Timedelta {
     /// One nanosecond, the finest span the count resolves.
     pub const NANOSECOND: Self = Self(1);
     /// One microsecond.
-    pub const MICROSECOND: Self = Self(NANOS_PER_MICRO);
+    pub const MICROSECOND: Self = Self(NANOS_PER_MICROSECOND);
     /// One millisecond.
-    pub const MILLISECOND: Self = Self(NANOS_PER_MILLI);
+    pub const MILLISECOND: Self = Self(NANOS_PER_MILLISECOND);
     /// One second.
-    pub const SECOND: Self = Self(NANOS_PER_SEC);
+    pub const SECOND: Self = Self(NANOS_PER_SECOND);
     /// One minute.
     pub const MINUTE: Self = Self(NANOS_PER_MINUTE);
     /// One hour.
@@ -87,21 +68,21 @@ impl Timedelta {
     #[inline]
     #[must_use]
     pub const fn from_micros(micros: i64) -> Self {
-        Self(micros.saturating_mul(NANOS_PER_MICRO))
+        Self(micros.saturating_mul(NANOS_PER_MICROSECOND))
     }
 
     /// A span of `millis` milliseconds, saturating.
     #[inline]
     #[must_use]
     pub const fn from_millis(millis: i64) -> Self {
-        Self(millis.saturating_mul(NANOS_PER_MILLI))
+        Self(millis.saturating_mul(NANOS_PER_MILLISECOND))
     }
 
     /// A span of `secs` seconds, saturating.
     #[inline]
     #[must_use]
     pub const fn from_secs(secs: i64) -> Self {
-        Self(secs.saturating_mul(NANOS_PER_SEC))
+        Self(secs.saturating_mul(NANOS_PER_SECOND))
     }
 
     /// A span of `mins` minutes, saturating.
@@ -136,21 +117,21 @@ impl Timedelta {
     #[inline]
     #[must_use]
     pub const fn as_micros(self) -> i64 {
-        self.0 / NANOS_PER_MICRO
+        self.0 / NANOS_PER_MICROSECOND
     }
 
     /// The span in whole milliseconds, truncated toward zero.
     #[inline]
     #[must_use]
     pub const fn as_millis(self) -> i64 {
-        self.0 / NANOS_PER_MILLI
+        self.0 / NANOS_PER_MILLISECOND
     }
 
     /// The span in whole seconds, truncated toward zero.
     #[inline]
     #[must_use]
     pub const fn as_secs(self) -> i64 {
-        self.0 / NANOS_PER_SEC
+        self.0 / NANOS_PER_SECOND
     }
 
     /// The span in whole minutes, truncated toward zero.
@@ -178,64 +159,91 @@ impl Timedelta {
     #[inline]
     #[must_use]
     pub const fn subsec_nanos(self) -> i32 {
-        subsecond_part(self.0, 1)
+        subsecond_part::<1>(self.0)
     }
 
     /// The whole microseconds past the whole seconds, signed as the span is.
     #[inline]
     #[must_use]
     pub const fn subsec_micros(self) -> i32 {
-        subsecond_part(self.0, NANOS_PER_MICRO)
+        subsecond_part::<NANOS_PER_MICROSECOND>(self.0)
     }
 
     /// The whole milliseconds past the whole seconds, signed as the span is.
     #[inline]
     #[must_use]
     pub const fn subsec_millis(self) -> i32 {
-        subsecond_part(self.0, NANOS_PER_MILLI)
+        subsecond_part::<NANOS_PER_MILLISECOND>(self.0)
+    }
+
+    /// How many ticks the span lasts at `rate`: a multiply and a shift, to within a tick.
+    #[inline]
+    #[must_use]
+    pub const fn to_ticks(self, rate: TickRate) -> Ticks {
+        Ticks(rate.nanos_to_ticks(self.0))
     }
 }
 
-/// The part of `nanos` past its whole seconds, in whole units of `unit` nanoseconds.
+/// The part of `nanos` past its whole seconds, in whole units of `UNIT` nanoseconds.
+#[inline]
 #[expect(
     clippy::arithmetic_side_effects,
     clippy::as_conversions,
     reason = "every unit is a nonzero constant, and a part of a second fits `i32`; `TryFrom` is not const"
 )]
-const fn subsecond_part(nanos: i64, unit: i64) -> i32 {
-    (nanos % NANOS_PER_SEC / unit) as i32
+const fn subsecond_part<const UNIT: i64>(nanos: i64) -> i32 {
+    (nanos % NANOS_PER_SECOND / UNIT) as i32
 }
 
 /// Coarsest unit first, once each, `0s` for zero: `1d2h`, `1m0s250ms`, `-3us`.
 impl fmt::Display for Timedelta {
-    #[expect(clippy::arithmetic_side_effects, reason = "every unit is a nonzero constant")]
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut text = Text::<LONGEST>::new();
+        let mut spelling =
+            Spelling { text: ArrayString::new(), remainder: self.0.unsigned_abs(), started: false };
         if self.0 == 0 {
-            text.push(b"0s")?;
+            spelling.text.write_str("0s")?;
         } else if self.0 < 0 {
-            text.push(b"-")?;
+            spelling.text.write_str("-")?;
         }
-        // Unsigned, since `MIN` has no positive twin.
-        let mut remainder = self.0.unsigned_abs();
-        let coarsest = UNITS.iter().position(|&(_, unit)| remainder >= unit).unwrap_or(0);
-        let mut digits = itoa::Buffer::new();
-        for &(suffix, unit) in UNITS.iter().skip(coarsest) {
-            if remainder == 0 {
-                break;
-            }
-            text.push(digits.format(remainder / unit).as_bytes())?;
-            text.push(suffix.as_bytes())?;
-            remainder %= unit;
-        }
-        fmt::Display::fmt(&text, formatter)
+        // A unit apiece, so each divides by a constant, which compiles to a multiply.
+        spelling.write_unit::<{ NANOS_PER_DAY.unsigned_abs() }>("d")?;
+        spelling.write_unit::<{ NANOS_PER_HOUR.unsigned_abs() }>("h")?;
+        spelling.write_unit::<{ NANOS_PER_MINUTE.unsigned_abs() }>("m")?;
+        spelling.write_unit::<{ NANOS_PER_SECOND.unsigned_abs() }>("s")?;
+        spelling.write_unit::<{ NANOS_PER_MILLISECOND.unsigned_abs() }>("ms")?;
+        spelling.write_unit::<{ NANOS_PER_MICROSECOND.unsigned_abs() }>("us")?;
+        spelling.write_unit::<1>("ns")?;
+        pad(formatter, &spelling.text)
     }
 }
 
-/// As [`Display`](fmt::Display) writes it.
-impl fmt::Debug for Timedelta {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, formatter)
+/// A span's spelling, as far as it is written.
+struct Spelling {
+    /// What is written so far.
+    text: ArrayString<LONGEST>,
+    /// The nanoseconds left to write: unsigned, since `MIN` has no positive twin.
+    remainder: u64,
+    /// Whether a unit is written, after which each finer one is, a zero among them.
+    started: bool,
+}
+
+impl Spelling {
+    /// Writes the whole `UNIT`s left, then `suffix`, once a coarser unit is written or one is
+    /// whole, and keeps what is finer; nothing, once nothing is left.
+    #[inline]
+    #[expect(clippy::arithmetic_side_effects, reason = "`UNIT` is a nonzero constant")]
+    fn write_unit<const UNIT: u64>(&mut self, suffix: &str) -> fmt::Result {
+        if self.remainder == 0 {
+            return Ok(());
+        }
+        let count = self.remainder / UNIT;
+        if self.started || count > 0 {
+            self.text.write_str(Buffer::new().format(count))?;
+            self.text.write_str(suffix)?;
+            self.started = true;
+        }
+        self.remainder %= UNIT;
+        Ok(())
     }
 }
 
@@ -245,30 +253,38 @@ impl FromStr for Timedelta {
     type Err = ParseTimedeltaError;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
-        parse(text).ok_or(ParseTimedeltaError)
+        parse(text.as_bytes()).ok_or(ParseTimedeltaError)
     }
 }
 
-/// Reads `text` as a span, or `None`.
-fn parse(text: &str) -> Option<Timedelta> {
-    if text == "0" {
+/// Reads `text` as a span in one pass, or `None`.
+fn parse(text: &[u8]) -> Option<Timedelta> {
+    if text == b"0" {
         return Some(Timedelta::ZERO);
     }
-    let (is_negative, mut rest) = text.strip_prefix('-').map_or((false, text), |rest| (true, rest));
+    let (is_negative, mut rest) = match text {
+        [b'-', rest @ ..] => (true, rest),
+        _ => (false, text),
+    };
     if rest.is_empty() {
         return None;
     }
     let mut magnitude: u64 = 0;
     let mut previous_unit = u64::MAX;
     while !rest.is_empty() {
-        let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
-        let (count, tail) = rest.split_at_checked(digits)?;
-        let count: u64 = count.parse().ok()?;
-        // Finest first, so `ms` is tried before `m` and `s`.
-        let (unit, tail) = UNITS
-            .iter()
-            .rev()
-            .find_map(|&(suffix, unit)| Some((unit, tail.strip_prefix(suffix)?)))?;
+        let (count, tail) = read_digits(rest)?;
+        // The units `Display` writes, `ms` tried before `m`.
+        let (unit, tail) = match tail {
+            [b'd', tail @ ..] => (NANOS_PER_DAY, tail),
+            [b'h', tail @ ..] => (NANOS_PER_HOUR, tail),
+            [b'm', b's', tail @ ..] => (NANOS_PER_MILLISECOND, tail),
+            [b'm', tail @ ..] => (NANOS_PER_MINUTE, tail),
+            [b's', tail @ ..] => (NANOS_PER_SECOND, tail),
+            [b'u', b's', tail @ ..] => (NANOS_PER_MICROSECOND, tail),
+            [b'n', b's', tail @ ..] => (1, tail),
+            _ => return None,
+        };
+        let unit = unit.unsigned_abs();
         if unit >= previous_unit {
             return None;
         }
@@ -284,13 +300,24 @@ fn parse(text: &str) -> Option<Timedelta> {
     nanos.map(Timedelta)
 }
 
+/// The count `text` opens with, one ASCII digit at least, and the text after it.
+fn read_digits(text: &[u8]) -> Option<(u64, &[u8])> {
+    let mut count: u64 = 0;
+    let mut rest = text;
+    while let [digit @ b'0'..=b'9', tail @ ..] = rest {
+        count = count.checked_mul(10)?.checked_add(u64::from(digit.wrapping_sub(b'0')))?;
+        rest = tail;
+    }
+    (rest.len() < text.len()).then_some((count, rest))
+}
+
 /// Refuses a negative span.
 impl TryFrom<Timedelta> for Duration {
     type Error = OutOfRangeError;
 
     #[inline]
     fn try_from(span: Timedelta) -> Result<Self, Self::Error> {
-        u64::try_from(span.0).ok().map(Self::from_nanos).ok_or(OutOfRangeError)
+        u64::try_from(span.0).map(Self::from_nanos).map_err(|_past_the_range| OutOfRangeError)
     }
 }
 
@@ -300,7 +327,7 @@ impl TryFrom<Duration> for Timedelta {
 
     #[inline]
     fn try_from(duration: Duration) -> Result<Self, Self::Error> {
-        i64::try_from(duration.as_nanos()).ok().map(Self).ok_or(OutOfRangeError)
+        i64::try_from(duration.as_nanos()).map(Self).map_err(|_past_the_range| OutOfRangeError)
     }
 }
 
@@ -317,24 +344,28 @@ mod tests {
 
     #[test]
     fn every_unit_scales_to_the_same_count() {
-        assert_eq!(Timedelta::from_micros(1), Timedelta::MICROSECOND);
-        assert_eq!(Timedelta::from_millis(1), Timedelta::MILLISECOND);
-        assert_eq!(Timedelta::from_secs(1), Timedelta::SECOND);
-        assert_eq!(Timedelta::from_mins(1), Timedelta::MINUTE);
-        assert_eq!(Timedelta::from_hours(1), Timedelta::HOUR);
-        assert_eq!(Timedelta::from_days(1), Timedelta::DAY);
-        assert_eq!(Timedelta::from_days(2).as_hours(), 48);
-        assert_eq!(Timedelta::from_secs(i64::MAX), Timedelta::MAX, "saturating");
+        assert_eq!(Timedelta::from_micros(1), Timedelta::MICROSECOND, "a microsecond");
+        assert_eq!(Timedelta::from_millis(1), Timedelta::MILLISECOND, "a millisecond");
+        assert_eq!(Timedelta::from_secs(1), Timedelta::SECOND, "a second");
+        assert_eq!(Timedelta::from_mins(1), Timedelta::MINUTE, "a minute");
+        assert_eq!(Timedelta::from_hours(1), Timedelta::HOUR, "an hour");
+        assert_eq!(Timedelta::from_days(1), Timedelta::DAY, "a day");
+        assert_eq!(Timedelta::from_days(2).as_hours(), 48, "a coarser unit, counted finer");
+        assert_eq!(
+            Timedelta::from_secs(i64::MAX),
+            Timedelta::MAX,
+            "a count past the range saturates"
+        );
     }
 
     #[test]
-    fn accessors_truncate_toward_zero() {
+    fn a_backwards_span_counts_its_whole_units_toward_zero() {
         let span = Timedelta::from_nanos(-1_234_567_890);
-        assert_eq!(span.as_secs(), -1);
-        assert_eq!(span.as_millis(), -1_234);
-        assert_eq!(span.subsec_nanos(), -234_567_890);
-        assert_eq!(span.subsec_micros(), -234_567);
-        assert_eq!(span.subsec_millis(), -234);
+        assert_eq!(span.as_secs(), -1, "whole seconds");
+        assert_eq!(span.as_millis(), -1_234, "whole milliseconds");
+        assert_eq!(span.subsec_nanos(), -234_567_890, "the nanoseconds past the seconds");
+        assert_eq!(span.subsec_micros(), -234_567, "the microseconds past them");
+        assert_eq!(span.subsec_millis(), -234, "and the milliseconds");
     }
 
     #[rstest]
@@ -353,16 +384,16 @@ mod tests {
 
     #[test]
     fn a_reading_may_skip_a_coarser_unit_or_be_a_bare_zero() {
-        assert_eq!("0".parse(), Ok(Timedelta::ZERO));
-        assert_eq!("48h".parse(), Ok(Timedelta::from_days(2)));
+        assert_eq!("0".parse(), Ok(Timedelta::ZERO), "a bare zero");
+        assert_eq!("48h".parse(), Ok(Timedelta::from_days(2)), "a count past the next unit up");
     }
 
     #[test]
     fn a_width_pads_the_spelling() {
         let span = Timedelta::from_millis(500);
-        assert_eq!(format!("[{span:8}]"), "[500ms   ]");
-        assert_eq!(format!("[{span:>8}]"), "[   500ms]");
-        assert_eq!(format!("[{span:-^9}]"), "[--500ms--]");
+        assert_eq!(format!("[{span:8}]"), "[500ms   ]", "to the left by default");
+        assert_eq!(format!("[{span:>8}]"), "[   500ms]", "to the right");
+        assert_eq!(format!("[{span:-^9}]"), "[--500ms--]", "and centred, with a fill");
     }
 
     #[rstest]
@@ -374,30 +405,34 @@ mod tests {
     #[case::finest_first("1ns2s")]
     #[case::spaced("5 minutes")]
     #[case::an_unknown_unit("1msec")]
+    #[case::a_backwards_zero("-0")]
+    #[case::a_sign_display_never_writes("+1s")]
     #[case::past_the_range("9223372036854775808ns")]
+    #[case::a_count_past_any_unit("99999999999999999999999ns")]
     fn a_malformed_span_is_refused(#[case] text: &str) {
-        assert_eq!(text.parse::<Timedelta>(), Err(ParseTimedeltaError));
+        assert_eq!(text.parse::<Timedelta>(), Err(ParseTimedeltaError), "{text:?} is refused");
     }
 
     #[test]
     fn a_duration_crosses_both_ways_and_a_negative_span_is_refused() {
-        assert_eq!(Duration::try_from(Timedelta::from_millis(5)), Ok(Duration::from_millis(5)));
-        assert_eq!(Duration::try_from(Timedelta::from_millis(-5)), Err(OutOfRangeError));
-        assert_eq!(Timedelta::try_from(Duration::from_millis(5)), Ok(Timedelta::from_millis(5)));
-        assert_eq!(Timedelta::try_from(Duration::MAX), Err(OutOfRangeError));
+        let (span, duration) = (Timedelta::from_millis(5), Duration::from_millis(5));
+        assert_eq!(Duration::try_from(span), Ok(duration), "a span to a duration");
+        assert_eq!(Timedelta::try_from(duration), Ok(span), "and back");
+        assert_eq!(Duration::try_from(-span), Err(OutOfRangeError), "no duration runs backwards");
+        assert_eq!(Timedelta::try_from(Duration::MAX), Err(OutOfRangeError), "nor past the range");
     }
 
     proptest! {
         #[test]
         fn every_span_reads_back_from_its_spelling(nanos in any::<i64>()) {
             let span = Timedelta::from_nanos(nanos);
-            prop_assert_eq!(span.to_string().parse(), Ok(span));
+            prop_assert_eq!(span.to_string().parse(), Ok(span), "the spelling reads back");
         }
 
         #[test]
         fn whatever_any_text_reads_as_reads_back_the_same(text in ".{0,40}") {
             if let Ok(span) = text.parse::<Timedelta>() {
-                prop_assert_eq!(span.to_string().parse(), Ok(span));
+                prop_assert_eq!(span.to_string().parse(), Ok(span), "what was read writes back");
             }
         }
     }

@@ -31,10 +31,10 @@ fn main() {
     println!("on the wire        {}", captured - published);
 
     // The same instant, read as a date; and the minute it falls in.
-    let date = captured.to_utc();
+    let date_time = captured.to_utc();
     println!(
         "that is            {}-{:02}-{:02}, {} ns past the second",
-        date.year, date.month, date.day, date.nanosecond
+        date_time.year, date_time.month, date_time.day, date_time.nanosecond
     );
     let minute = captured.floor(Timedelta::MINUTE);
     println!("its minute         {minute:.0} to {:.0}", minute + Timedelta::MINUTE);
@@ -45,12 +45,8 @@ fn main() {
     println!("quote              {} / {}, {age} old, stale: {}", quote.bid, quote.ask, age > stale);
 
     // A counter's ticks mean nothing until a rate says what one is worth.
-    let start = Tick::new(1_000_000);
-    let ticks = start + Ticks::new(4_250) - start;
-    println!(
-        "counter ran        {} ticks: {} at {}",
-        ticks.get(),
-        TickRate::GIGAHERTZ.timedelta(ticks),
-        TickRate::GIGAHERTZ
-    );
+    let start = Tick::from_ticks(1_000_000);
+    let ticks = start + Ticks::from_ticks(4_250) - start;
+    let rate = TickRate::GIGAHERTZ;
+    println!("counter ran        {ticks}: {} at {rate}", ticks.to_timedelta(rate));
 }

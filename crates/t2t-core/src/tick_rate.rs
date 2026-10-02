@@ -1,31 +1,40 @@
 //! A counter's rate, and the conversion between its ticks and nanoseconds.
 
-use core::fmt;
 use core::num::NonZeroU64;
+use core::str::FromStr;
 
-use crate::timedelta::NANOS_PER_SEC;
-use crate::{Ticks, Timedelta};
+use derive_more::{Debug, Display};
+#[cfg(feature = "zerocopy")]
+use zerocopy::{Immutable, KnownLayout};
 
-/// How many ticks a counter advances in a second: what turns [`Ticks`] into a [`Timedelta`] and
-/// back.
+use crate::ParseTickRateError;
+use crate::consts::NANOS_PER_SECOND;
+use crate::spelling::{Count, read_count};
+
+/// How many ticks a counter advances in a second: what turns [`Ticks`](crate::Ticks) into a
+/// [`Timedelta`](crate::Timedelta) and back.
 ///
-/// A conversion is a multiply and a shift, with factors [`new`](Self::new) works out once: no
-/// division. An exact multiple converts exactly, any other count to within one unit of its exact
-/// quotient, and the range's ends saturate.
+/// A conversion is a multiply and a shift, with factors [`from_hertz`](Self::from_hertz) works out
+/// once: no division. An exact multiple converts exactly, any other count to within one unit of
+/// its exact quotient, and the range's ends saturate. It is written as its hertz, `24000000 Hz`,
+/// and parses back from it.
 ///
 /// # Examples
 /// ```
 /// use t2t_core::{TickRate, Ticks, Timedelta};
 ///
-/// let rate = TickRate::new(24_000_000).expect("a nonzero rate");
-/// assert_eq!(rate.timedelta(Ticks::new(24)), Timedelta::MICROSECOND, "24 ticks at 24 MHz");
-/// assert_eq!(rate.ticks(Timedelta::SECOND), Ticks::new(24_000_000), "and back");
+/// let rate: TickRate = "24000000 Hz".parse()?;
+/// assert_eq!(Ticks::from_ticks(24).to_timedelta(rate), Timedelta::MICROSECOND, "at 24 MHz");
+/// assert_eq!(Timedelta::SECOND.to_ticks(rate), Ticks::from_ticks(24_000_000), "and back");
+/// # Ok::<(), t2t_core::ParseTickRateError>(())
 /// ```
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "zerocopy", derive(zerocopy::Immutable, zerocopy::KnownLayout))]
+#[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[display("{}", Count(hertz.get(), " Hz"))]
+#[debug("{self}")]
+#[cfg_attr(feature = "zerocopy", derive(Immutable, KnownLayout))]
 pub struct TickRate {
     /// Ticks a second.
-    rate: NonZeroU64,
+    hertz: NonZeroU64,
     /// Ticks to nanoseconds.
     ticks_to_nanos: Scale,
     /// Nanoseconds to ticks.
@@ -34,55 +43,50 @@ pub struct TickRate {
 
 impl TickRate {
     /// A tick a nanosecond, the rate the Arm generic timer runs at from Armv8.6 on.
-    pub const GIGAHERTZ: Self = Self::new(1_000_000_000).unwrap();
+    pub const GIGAHERTZ: Self = Self::from_hertz(1_000_000_000).expect("a billion is no zero");
 
-    /// A counter advancing `ticks_per_second` times a second, or `None` for zero.
+    /// A counter advancing `hertz` ticks a second, or `None` for zero.
+    #[inline]
     #[must_use]
-    pub const fn new(ticks_per_second: u64) -> Option<Self> {
-        let Some(rate) = NonZeroU64::new(ticks_per_second) else {
+    pub const fn from_hertz(hertz: u64) -> Option<Self> {
+        let Some(nonzero) = NonZeroU64::new(hertz) else {
             return None;
         };
-        let nanos_per_second = NANOS_PER_SEC.unsigned_abs();
+        let nanos_per_second = NANOS_PER_SECOND.unsigned_abs();
         Some(Self {
-            rate,
-            ticks_to_nanos: Scale::new(nanos_per_second, ticks_per_second),
-            nanos_to_ticks: Scale::new(ticks_per_second, nanos_per_second),
+            hertz: nonzero,
+            ticks_to_nanos: Scale::new(nanos_per_second, hertz),
+            nanos_to_ticks: Scale::new(hertz, nanos_per_second),
         })
     }
 
     /// Ticks a second.
     #[inline]
     #[must_use]
-    pub const fn get(self) -> u64 {
-        self.rate.get()
+    pub const fn as_hertz(self) -> u64 {
+        self.hertz.get()
     }
 
-    /// How long `ticks` lasts at this rate.
+    /// `ticks` in nanoseconds, saturating.
     #[inline]
-    #[must_use]
-    pub const fn timedelta(self, ticks: Ticks) -> Timedelta {
-        Timedelta(self.ticks_to_nanos.apply(ticks.0))
+    pub(crate) const fn ticks_to_nanos(self, ticks: i64) -> i64 {
+        self.ticks_to_nanos.apply(ticks)
     }
 
-    /// How many ticks `span` lasts at this rate.
+    /// `nanos` in ticks, saturating.
     #[inline]
-    #[must_use]
-    pub const fn ticks(self, span: Timedelta) -> Ticks {
-        Ticks(self.nanos_to_ticks.apply(span.0))
+    pub(crate) const fn nanos_to_ticks(self, nanos: i64) -> i64 {
+        self.nanos_to_ticks.apply(nanos)
     }
 }
 
-/// The rate and its unit: `24000000 Hz`.
-impl fmt::Display for TickRate {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{} Hz", self.rate)
-    }
-}
+/// Reads what [`Display`](core::fmt::Display) writes: a count of hertz above zero, then ` Hz`.
+impl FromStr for TickRate {
+    type Err = ParseTickRateError;
 
-/// As [`Display`](fmt::Display) writes it.
-impl fmt::Debug for TickRate {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, formatter)
+    fn from_str(text: &str) -> Result<Self, Self::Err> {
+        let hertz = text.strip_suffix(" Hz").and_then(read_count);
+        hertz.and_then(Self::from_hertz).ok_or(ParseTickRateError)
     }
 }
 
@@ -91,7 +95,7 @@ impl fmt::Debug for TickRate {
 /// The factor is rounded up, so an exact multiple converts exactly, and any other count to within
 /// one unit of its exact quotient.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "zerocopy", derive(zerocopy::Immutable, zerocopy::KnownLayout))]
+#[cfg_attr(feature = "zerocopy", derive(Immutable, KnownLayout))]
 struct Scale {
     /// The ratio times two to the `shift`, rounded up.
     factor: u64,
@@ -160,16 +164,17 @@ const fn narrow(value: u128) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
     use alloc::string::ToString as _;
 
     use proptest::prelude::{any, prop_assert, proptest};
     use rstest::rstest;
 
-    use crate::{TickRate, Ticks, Timedelta};
+    use crate::{ParseTickRateError, TickRate, Ticks, Timedelta};
 
-    /// A rate of `ticks_per_second`.
-    fn rate(ticks_per_second: u64) -> TickRate {
-        TickRate::new(ticks_per_second).expect("a nonzero rate")
+    /// A rate of `hertz`.
+    fn rate(hertz: u64) -> TickRate {
+        TickRate::from_hertz(hertz).expect("a nonzero rate")
     }
 
     /// `count * numerator / denominator`, exactly, truncated toward zero.
@@ -185,44 +190,63 @@ mod tests {
     #[case::armv8_6(1_000_000_000)]
     #[case::a_tsc(3_000_000_000)]
     #[case::a_tsc_from_its_crystal(3_379_200_000)]
-    fn a_second_of_ticks_is_a_second(#[case] ticks_per_second: u64) {
-        let second = Ticks::new(i64::try_from(ticks_per_second).expect("a rate below `i64::MAX`"));
-        assert_eq!(rate(ticks_per_second).timedelta(second), Timedelta::SECOND);
-        assert_eq!(rate(ticks_per_second).ticks(Timedelta::SECOND), second);
+    fn a_second_of_ticks_is_a_second(#[case] hertz: u64) {
+        let second = Ticks::from_ticks(i64::try_from(hertz).expect("a rate below `i64::MAX`"));
+        assert_eq!(second.to_timedelta(rate(hertz)), Timedelta::SECOND, "a second of ticks");
+        assert_eq!(Timedelta::SECOND.to_ticks(rate(hertz)), second, "and back, exactly");
     }
 
     #[test]
     fn a_backwards_count_converts_backwards() {
-        assert_eq!(rate(24_000_000).timedelta(Ticks::new(-24)), -Timedelta::MICROSECOND);
-        assert_eq!(rate(3_000_000_000).ticks(-Timedelta::MICROSECOND), Ticks::new(-3_000));
+        let span = Ticks::from_ticks(-24).to_timedelta(rate(24_000_000));
+        assert_eq!(span, -Timedelta::MICROSECOND, "ticks to nanoseconds");
+        let ticks = (-Timedelta::MICROSECOND).to_ticks(rate(3_000_000_000));
+        assert_eq!(ticks, Ticks::from_ticks(-3_000), "and nanoseconds to ticks");
     }
 
     #[test]
     fn a_conversion_past_the_range_saturates() {
-        assert_eq!(rate(1).timedelta(Ticks::MAX), Timedelta::MAX);
-        assert_eq!(rate(1).timedelta(Ticks::MIN), Timedelta::MIN);
-        assert_eq!(rate(u64::MAX).ticks(Timedelta::MAX), Ticks::MAX);
+        assert_eq!(Ticks::MAX.to_timedelta(rate(1)), Timedelta::MAX, "forwards");
+        assert_eq!(Ticks::MIN.to_timedelta(rate(1)), Timedelta::MIN, "backwards");
+        assert_eq!(Timedelta::MAX.to_ticks(rate(u64::MAX)), Ticks::MAX, "the other way about");
     }
 
     #[test]
-    fn a_rate_of_zero_is_refused_and_any_other_writes_its_unit() {
-        assert_eq!(TickRate::new(0), None);
-        assert_eq!(rate(24_000_000).to_string(), "24000000 Hz");
-        assert_eq!(TickRate::GIGAHERTZ.get(), 1_000_000_000);
+    fn a_rate_reads_back_from_its_hertz() {
+        assert_eq!(rate(24_000_000).to_string(), "24000000 Hz", "written as its hertz");
+        assert_eq!("24000000 Hz".parse(), Ok(rate(24_000_000)), "and read back");
+        assert_eq!(TickRate::GIGAHERTZ.as_hertz(), 1_000_000_000, "a gigahertz in hertz");
+        assert_eq!(TickRate::from_hertz(0), None, "a counter that never ticks");
+    }
+
+    #[test]
+    fn a_width_pads_the_rate_with_its_unit() {
+        assert_eq!(format!("[{:>8}]", rate(24)), "[   24 Hz]", "to the right");
+        assert_eq!(format!("{:?}", rate(24)), "24 Hz", "and debugged as displayed");
+    }
+
+    #[rstest]
+    #[case::zero("0 Hz")]
+    #[case::no_unit("24000000")]
+    #[case::a_sign_display_never_writes("+24 Hz")]
+    #[case::kilohertz("24 kHz")]
+    #[case::past_the_range("18446744073709551616 Hz")]
+    fn a_malformed_rate_is_refused(#[case] text: &str) {
+        assert_eq!(text.parse::<TickRate>(), Err(ParseTickRateError), "{text:?} is refused");
     }
 
     proptest! {
         #[test]
         fn a_conversion_is_within_one_unit_of_the_exact_quotient(
             count in any::<i64>(),
-            ticks_per_second in 1_u64..=20_000_000_000,
+            hertz in 1_u64..,
         ) {
-            let rate = rate(ticks_per_second);
-            let nanos = rate.timedelta(Ticks::new(count)).as_nanos();
-            let ticks = rate.ticks(Timedelta::from_nanos(count)).get();
+            let rate = rate(hertz);
+            let nanos = Ticks::from_ticks(count).to_timedelta(rate).as_nanos();
+            let ticks = Timedelta::from_nanos(count).to_ticks(rate).as_ticks();
             for (actual, exact) in [
-                (nanos, exact(count, 1_000_000_000, ticks_per_second)),
-                (ticks, exact(count, ticks_per_second, 1_000_000_000)),
+                (nanos, exact(count, 1_000_000_000, hertz)),
+                (ticks, exact(count, hertz, 1_000_000_000)),
             ] {
                 let exact = exact.clamp(i128::from(i64::MIN), i128::from(i64::MAX));
                 prop_assert!(i128::from(actual).abs_diff(exact) <= 1, "{actual} against {exact}");

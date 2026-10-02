@@ -11,10 +11,13 @@ repository.workspace   = true
 [package.metadata.docs.rs]
 all-features = true
 
+[package.metadata.cargo-shear]
+ignored-paths = ["tests/compile_fail/*.rs"]
+
 [features]
 default = []
 
-std = ["dep:libc", "libc/std", "t2t-core/std", "thiserror/std"]
+std = ["dep:libc", "derive_more/std", "libc/std", "t2t-core/std"]
 
 [lints]
 workspace = true
@@ -33,7 +36,7 @@ required-features = ["std"]
 
 [dependencies]
 # external
-thiserror = { workspace = true }
+derive_more = { workspace = true, features = ["debug", "display", "error"] }
 # internal
 t2t-core = { workspace = true }
 
@@ -41,9 +44,14 @@ t2t-core = { workspace = true }
 # external
 divan     = { workspace = true }
 raw-cpuid = { workspace = true }
+rstest    = { workspace = true }
 trybuild  = { workspace = true }
 
-[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+[build-dependencies]
+# external
+cfg_aliases = { workspace = true }
+
+[target.'cfg(all(target_pointer_width = "64", any(target_os = "linux", target_os = "macos")))'.dependencies]
 # external
 libc = { workspace = true, optional = true }
 

@@ -1,6 +1,6 @@
 [package]
 name                   = "t2t-core"
-description            = "time values: instants on the wall and monotonic clocks, counter readings, and the spans between them."
+description            = "time values: points on the wall and monotonic clocks, counter readings, and the spans between them."
 version.workspace      = true
 edition.workspace      = true
 rust-version.workspace = true
@@ -11,6 +11,9 @@ repository.workspace   = true
 [package.metadata.docs.rs]
 all-features = true
 
+[package.metadata.cargo-shear]
+ignored-paths = ["tests/compile_fail/*.rs"]
+
 [features]
 default = []
 
@@ -19,11 +22,13 @@ jiff-02 = ["dep:jiff"]
 schemars = ["dep:schemars", "serde"]
 serde = ["dep:serde_core"]
 std = [
+    "arrayvec/std",
     "chrono?/std",
+    "derive_more/std",
     "jiff?/std",
+    "powerfmt/std",
     "schemars?/std",
     "serde_core?/std",
-    "thiserror/std",
     "time?/std",
     "zerocopy?/std",
 ]
@@ -42,14 +47,16 @@ harness = false
 
 [dependencies]
 # external
-chrono     = { workspace = true, optional = true }
-itoa       = { workspace = true }
-jiff       = { workspace = true, optional = true }
-schemars   = { workspace = true, optional = true }
-serde_core = { workspace = true, optional = true }
-thiserror  = { workspace = true }
-time       = { workspace = true, optional = true }
-zerocopy   = { workspace = true, optional = true }
+arrayvec    = { workspace = true }
+chrono      = { workspace = true, optional = true }
+derive_more = { workspace = true, features = ["debug", "deref", "deref_mut", "display", "error", "from", "into"] }
+itoa        = { workspace = true }
+jiff        = { workspace = true, optional = true }
+powerfmt    = { workspace = true }
+schemars    = { workspace = true, optional = true }
+serde_core  = { workspace = true, optional = true }
+time        = { workspace = true, optional = true }
+zerocopy    = { workspace = true, optional = true }
 
 [dev-dependencies]
 # external
