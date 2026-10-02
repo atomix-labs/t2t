@@ -343,8 +343,29 @@ mod tests {
 
     #[test]
     #[cfg_attr(miri, ignore = "Miri cannot execute the counter's read")]
-    fn the_discovered_counter_runs_at_a_plausible_rate_and_advances() {
-        let counter = Counter::discover().expect("a counter with a rate");
+    fn the_counter_never_runs_backwards() {
+        // A reading needs no rate.
+        let counter = Counter::new(TickRate::GIGAHERTZ);
+        let start = counter.now();
+        for value in 0_u64..10_000 {
+            black_box(value);
+        }
+        let span = counter.now() - start;
+        assert!(span >= Ticks::ZERO, "the later reading is no earlier: {span}");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore = "Miri cannot execute the counter's read")]
+    fn the_discovered_counter_runs_at_a_plausible_rate() {
+        let discovered = Counter::discover();
+        // On `x86_64` with no OS clock to measure against, a CPU that reports no rate, as a
+        // virtual machine's may, leaves the counter without one.
+        if cfg!(all(target_arch = "x86_64", not(os_clocks)))
+            && discovered == Err(CounterError::NoRate)
+        {
+            return;
+        }
+        let counter = discovered.expect("a counter with a rate");
         let rate = counter.rate();
         assert!(PLAUSIBLE_RATES.contains(&rate.as_hertz()), "a plausible rate: {rate}");
 
@@ -352,9 +373,7 @@ mod tests {
         for value in 0_u64..10_000 {
             black_box(value);
         }
-        let span = counter.now() - start;
-        assert!(span >= Ticks::ZERO, "the counter never runs backwards: {span}");
-        let took = span.to_timedelta(rate);
+        let took = (counter.now() - start).to_timedelta(rate);
         assert!(took < Timedelta::from_millis(10), "ten thousand loops in under 10 ms: {took}");
     }
 }
