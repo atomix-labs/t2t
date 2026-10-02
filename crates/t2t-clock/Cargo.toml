@@ -1,0 +1,51 @@
+[package]
+name                   = "t2t-clock"
+description            = "clocks that read the time: the system's wall and monotonic clocks, the CPU's counter, and clocks set by hand."
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+std = ["dep:libc", "libc/std", "t2t-core/std", "thiserror/std"]
+
+[lints]
+workspace = true
+
+[lib]
+bench = false
+
+[[bench]]
+name              = "read"
+harness           = false
+required-features = ["std"]
+
+[[test]]
+name              = "counter_cross_process"
+required-features = ["std"]
+
+[dependencies]
+# external
+thiserror = { workspace = true }
+# internal
+t2t-core = { workspace = true }
+
+[dev-dependencies]
+# external
+divan     = { workspace = true }
+raw-cpuid = { workspace = true }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+# external
+libc = { workspace = true, optional = true }
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+# external
+raw-cpuid = { workspace = true }

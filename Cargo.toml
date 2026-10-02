@@ -28,7 +28,8 @@ thiserror  = { version = "2.0.21", default-features = false }
 time       = { version = "0.3.55", default-features = false }
 zerocopy   = { version = "0.8.59", default-features = false, features = ["derive"] }
 # internal
-t2t-core = { path = "crates/t2t-core", version = "0.1.0", default-features = false }
+t2t-clock = { path = "crates/t2t-clock", version = "0.1.0", default-features = false }
+t2t-core  = { path = "crates/t2t-core", version = "0.1.0", default-features = false }
 
 [workspace.lints]
 
