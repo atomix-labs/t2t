@@ -640,6 +640,10 @@ dependencies = [
 [[package]]
 name = "t2t"
 version = "0.1.0"
+dependencies = [
+ "t2t-clock",
+ "t2t-core",
+]
 
 [[package]]
 name = "t2t-clock"
