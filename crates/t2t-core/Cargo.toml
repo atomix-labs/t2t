@@ -1,0 +1,52 @@
+[package]
+name                   = "t2t-core"
+description            = "time values: instants on the wall and monotonic clocks, counter readings, and the spans between them."
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+chrono-04 = ["dep:chrono"]
+jiff-02   = ["dep:jiff"]
+schemars  = ["dep:schemars", "serde"]
+serde     = ["dep:serde_core"]
+std       = ["schemars?/std", "serde_core?/std", "thiserror/std", "zerocopy?/std"]
+time-03   = ["dep:time"]
+zerocopy  = ["dep:zerocopy"]
+
+[lints]
+workspace = true
+
+[lib]
+bench = false
+
+[[bench]]
+name    = "convert"
+harness = false
+
+[dependencies]
+# external
+chrono     = { workspace = true, optional = true }
+itoa       = { workspace = true }
+jiff       = { workspace = true, optional = true }
+schemars   = { workspace = true, optional = true }
+serde_core = { workspace = true, optional = true }
+thiserror  = { workspace = true }
+time       = { workspace = true, optional = true }
+zerocopy   = { workspace = true, optional = true }
+
+[dev-dependencies]
+# external
+divan      = { workspace = true }
+proptest   = { workspace = true }
+rstest     = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
