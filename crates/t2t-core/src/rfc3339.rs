@@ -219,9 +219,9 @@ fn fraction(text: &[u8]) -> Option<(u32, &[u8])> {
         nanos += u32::from(digit) * scale;
         rest = tail;
     }
-    let is_empty = rest.len() == digits.len();
+    let has_digits = rest.len() < digits.len();
     let has_tenth_digit = rest.first().is_some_and(u8::is_ascii_digit);
-    (!is_empty && !has_tenth_digit).then_some((nanos, rest))
+    (has_digits && !has_tenth_digit).then_some((nanos, rest))
 }
 
 #[cfg(test)]

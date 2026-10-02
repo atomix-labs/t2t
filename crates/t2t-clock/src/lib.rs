@@ -20,7 +20,7 @@
 //! | [`ManualClock`]        | any point      | by hand | a test or a replay on one thread             |
 //! | [`AtomicManualClock`]  | any point      | by hand | a test or a replay shared across threads     |
 //!
-//! The system clocks need the `std` feature, on 64-bit Linux or macOS, and read the clock the
+//! The OS clocks need the `std` feature, on 64-bit Linux or macOS, and read the clock the
 //! table's name says on each; each clock's docs give the ids. [`Counter`] reads the virtual counter
 //! on `aarch64` and the time-stamp counter on `x86_64`, with or without `std`.
 //!
@@ -63,14 +63,14 @@ mod counter;
 #[cfg(any(target_arch = "aarch64", target_arch = "x86_64"))]
 mod errors;
 mod manual;
-#[cfg(target_has_atomic = "64")]
-mod sync;
 #[cfg(all(
     feature = "std",
     target_pointer_width = "64",
     any(target_os = "linux", target_os = "macos")
 ))]
-mod system;
+mod os;
+#[cfg(target_has_atomic = "64")]
+mod sync;
 
 pub use crate::clock::Clock;
 #[cfg(any(target_arch = "aarch64", target_arch = "x86_64"))]
@@ -81,13 +81,13 @@ pub use crate::errors::CounterError;
 pub use crate::manual::AtomicManualClock;
 pub use crate::manual::ManualClock;
 #[cfg(all(feature = "std", target_pointer_width = "64", target_os = "linux"))]
-pub use crate::system::TaiClock;
+pub use crate::os::TaiClock;
 #[cfg(all(
     feature = "std",
     target_pointer_width = "64",
     any(target_os = "linux", target_os = "macos")
 ))]
-pub use crate::system::{
+pub use crate::os::{
     BootClock, CoarseMonotonicClock, CoarseSystemClock, MonotonicClock, ProcessCpuClock,
     RawMonotonicClock, SystemClock, ThreadCpuClock,
 };

@@ -1,6 +1,6 @@
 # Getting Started
 
-Add the crate, with the system clocks:
+Add the crate, with the OS clocks:
 
 ```sh
 cargo add t2t --git https://github.com/atomix-labs/t2t --features std

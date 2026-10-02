@@ -35,7 +35,7 @@
 //! - **Drive a test or a replay with [`ManualClock`](clock::ManualClock)**, or
 //!   [`AtomicManualClock`](clock::AtomicManualClock) across threads.
 //!
-//! The system clocks need the `std` feature, on 64-bit Linux or macOS; [`clock`] has them all.
+//! The OS clocks need the `std` feature, on 64-bit Linux or macOS; [`clock`] has them all.
 //!
 //! ```
 //! use t2t::clock::{Clock, ManualClock};

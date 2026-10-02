@@ -44,7 +44,7 @@ fn read(id: libc::clockid_t) -> i64 {
 }
 
 /// A clock that reads the OS clock `$id` as a `$point`.
-macro_rules! system_clock {
+macro_rules! os_clock {
     ($(#[$attribute:meta])* $clock:ident, $point:ident, $id:expr) => {
         $(#[$attribute])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -61,7 +61,7 @@ macro_rules! system_clock {
     };
 }
 
-system_clock!(
+os_clock!(
     /// The wall clock, `CLOCK_REALTIME`.
     ///
     /// The clock whose readings mean something off this machine, which makes it the stamp for a
@@ -81,7 +81,7 @@ system_clock!(
     ids::SYSTEM
 );
 
-system_clock!(
+os_clock!(
     /// The wall clock as the kernel's last tick left it, `CLOCK_REALTIME_COARSE`.
     ///
     /// The moment [`SystemClock`] names, to the kernel's tick, a few milliseconds: the kernel
@@ -103,7 +103,7 @@ system_clock!(
 );
 
 #[cfg(target_os = "linux")]
-system_clock!(
+os_clock!(
     /// International Atomic Time, `CLOCK_TAI`, on Linux.
     ///
     /// The wall clock plus the kernel's TAI offset, which `chrony` or `ptp4l` sets to the leap
@@ -113,7 +113,7 @@ system_clock!(
     ids::TAI
 );
 
-system_clock!(
+os_clock!(
     /// The monotonic clock: `CLOCK_MONOTONIC` on Linux, `CLOCK_UPTIME_RAW` on macOS.
     ///
     /// It never steps, and every process on the machine reads the same clock, which makes it the
@@ -133,7 +133,7 @@ system_clock!(
     ids::MONOTONIC
 );
 
-system_clock!(
+os_clock!(
     /// The monotonic clock as the kernel's last tick left it: `CLOCK_MONOTONIC_COARSE` on Linux,
     /// `CLOCK_UPTIME_RAW_APPROX` on macOS.
     ///
@@ -144,7 +144,7 @@ system_clock!(
     ids::COARSE_MONOTONIC
 );
 
-system_clock!(
+os_clock!(
     /// The monotonic clock at the hardware's own rate: `CLOCK_MONOTONIC_RAW` on Linux,
     /// `CLOCK_UPTIME_RAW` on macOS.
     ///
@@ -156,7 +156,7 @@ system_clock!(
     ids::RAW_MONOTONIC
 );
 
-system_clock!(
+os_clock!(
     /// The boot clock, which counts the time the machine was suspended: `CLOCK_BOOTTIME` on Linux,
     /// `CLOCK_MONOTONIC` on macOS.
     ///
@@ -167,7 +167,7 @@ system_clock!(
     ids::BOOT
 );
 
-system_clock!(
+os_clock!(
     /// The CPU time the process has used, on every thread, `CLOCK_PROCESS_CPUTIME_ID`.
     ///
     /// Read through a system call, not the fast path the clocks above take.
@@ -176,7 +176,7 @@ system_clock!(
     ids::PROCESS_CPU
 );
 
-system_clock!(
+os_clock!(
     /// The CPU time the calling thread has used, `CLOCK_THREAD_CPUTIME_ID`.
     ///
     /// Read through a system call, not the fast path the clocks above take. Two readings on two
