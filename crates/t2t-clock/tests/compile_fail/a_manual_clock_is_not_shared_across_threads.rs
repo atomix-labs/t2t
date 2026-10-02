@@ -1,4 +1,4 @@
-//! A manual clock is read and moved on one thread: another thread cannot share it.
+//! A manual clock may move to another thread, but two threads never share one.
 
 use std::thread;
 

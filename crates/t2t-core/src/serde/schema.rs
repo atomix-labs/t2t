@@ -45,20 +45,19 @@ impl JsonSchema for Timestamp {
 
 #[cfg(test)]
 mod tests {
-    use core::str::FromStr;
-
     use fancy_regex::Regex;
     use rstest::rstest;
     use schemars::{JsonSchema, schema_for};
 
     use crate::{Timedelta, Timestamp};
 
-    /// Whether `T`'s schema pattern takes `text` as `T`'s parser does.
-    fn agree<T: FromStr + JsonSchema>(text: &str) -> bool {
+    /// Whether `T`'s schema pattern takes `text`; fancy-regex reads the lookahead a span's holds,
+    /// which the `regex` crate refuses.
+    fn pattern_takes<T: JsonSchema>(text: &str) -> bool {
         let schema = schema_for!(T);
         let pattern = schema.get("pattern").and_then(|pattern| pattern.as_str());
-        let pattern = Regex::new(pattern.expect("a pattern")).expect("an ECMA-262 pattern");
-        pattern.is_match(text).expect("a match that ends") == text.parse::<T>().is_ok()
+        let pattern = Regex::new(pattern.expect("a pattern")).expect("a pattern fancy-regex reads");
+        pattern.is_match(text).expect("a match that ends")
     }
 
     // A count past the range is the parser's alone to refuse.
@@ -79,7 +78,11 @@ mod tests {
     #[case::spaced("5 minutes")]
     #[case::an_unknown_unit("1msec")]
     fn the_span_pattern_takes_what_the_parser_reads(#[case] text: &str) {
-        assert!(agree::<Timedelta>(text), "the pattern and the parser agree on {text:?}");
+        assert_eq!(
+            pattern_takes::<Timedelta>(text),
+            text.parse::<Timedelta>().is_ok(),
+            "the pattern takes {text:?} as the parser does"
+        );
     }
 
     // A date that does not exist, or one past the range, is the parser's alone to refuse.
@@ -95,6 +98,10 @@ mod tests {
     #[case::ten_fraction_digits("2026-09-16T07:45:35.1234567890Z")]
     #[case::a_letter_for_a_digit("2026-09-1xT07:45:35Z")]
     fn the_instant_pattern_takes_what_the_parser_reads(#[case] text: &str) {
-        assert!(agree::<Timestamp>(text), "the pattern and the parser agree on {text:?}");
+        assert_eq!(
+            pattern_takes::<Timestamp>(text),
+            text.parse::<Timestamp>().is_ok(),
+            "the pattern takes {text:?} as the parser does"
+        );
     }
 }

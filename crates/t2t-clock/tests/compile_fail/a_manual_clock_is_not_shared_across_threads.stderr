@@ -1,5 +1,5 @@
 error[E0277]: `Cell<Timestamp>` cannot be shared between threads safely
-  --> tests/compile_fail/a_manual_clock_stays_on_its_thread.rs:11:21
+  --> tests/compile_fail/a_manual_clock_is_not_shared_across_threads.rs:11:21
    |
 11 |         scope.spawn(|| clock.now());
    |               ----- ^^^^^^^^^^^^^^ `Cell<Timestamp>` cannot be shared between threads safely
@@ -15,7 +15,7 @@ note: required because it appears within the type `ManualClock`
    |            ^^^^^^^^^^^
    = note: required for `&ManualClock` to implement `Send`
 note: required because `clock` is used within this closure
-  --> tests/compile_fail/a_manual_clock_stays_on_its_thread.rs:11:24
+  --> tests/compile_fail/a_manual_clock_is_not_shared_across_threads.rs:11:24
    |
 11 |         scope.spawn(|| clock.now());
    |                        ^^^^^

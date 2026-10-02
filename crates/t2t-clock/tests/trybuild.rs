@@ -1,6 +1,6 @@
 //! The misuses the types refuse, each a fixture that must not compile.
 
-// A loom model drives no compiler.
+// A loom run tests the models alone.
 #![cfg(not(loom))]
 
 #[cfg(test)]

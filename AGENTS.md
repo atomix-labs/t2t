@@ -45,9 +45,9 @@ edition, licence and lints from the root `Cargo.toml`. The book is under
 and the lints' nightly options; the crates themselves build on stable, at the
 workspace's `rust-version`. The tools are the versions `.config/mise/` pins.
 `.github/workflows/platforms.yml` is the repository's own: the tests on arm64
-Linux and macOS, the bare-metal builds, the feature powerset, the loom models,
-and the fuzz targets. `crates/t2t-core/fuzz/` is a workspace of its own, one
-cargo-fuzz target a parser.
+Linux and macOS, the bare-metal builds, the 32-bit Linux check, the feature
+powerset, the loom models, and the fuzz targets. `crates/t2t-core/fuzz/` is a
+workspace of its own, one cargo-fuzz target a parser.
 
 ## Rules
 
@@ -74,7 +74,7 @@ cargo-fuzz target a parser.
   cmin`, and a crash it finds, shrunk with `cargo fuzz tmin`, becomes a unit
   test.
 - What the types refuse has a fixture in the crate's `tests/compile_fail/`: two
-  timelines' points, two kinds of span, a `ManualClock` across threads. A new
+  timelines' points, two kinds of span, a `ManualClock` two threads share. A new
   toolchain may reword a message; `TRYBUILD=overwrite cargo test --test
   trybuild` writes it again, to be read before it is committed.
 - No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
