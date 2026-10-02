@@ -511,8 +511,8 @@ exact = "dd19edf081856c3cebe8ffd879e9680fba3ac4b41a25550b603fb21ace7031cb"
 canonical = "dd19edf081856c3cebe8ffd879e9680fba3ac4b41a25550b603fb21ace7031cb"
 
 [files.".just/cargo-publish.py"]
-exact = "101df303de2d41f46c3786866f14ab1c24838440e8c4b15a1bd09d308304a7e1"
-canonical = "101df303de2d41f46c3786866f14ab1c24838440e8c4b15a1bd09d308304a7e1"
+exact = "edbf62731fb265ed99ac26d4059e3c670ebcd5b4d61739e026c8a39a4d901d0a"
+canonical = "edbf62731fb265ed99ac26d4059e3c670ebcd5b4d61739e026c8a39a4d901d0a"
 
 [files.".just/cargo-unused.just"]
 exact = "a3f2a5d103e228695ba41d0ac23718582adec40d119cf6d8f298a146c1374900"
