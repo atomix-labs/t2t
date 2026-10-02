@@ -1,4 +1,4 @@
-//! Clocks that read the time: the system's wall and monotonic clocks, the CPU's counter, and
+//! Clocks that read the time: the OS's wall and monotonic clocks, the CPU's counter, and
 //! clocks set by hand.
 //!
 //! Each clock reads its own kind of point through one verb, [`Clock::now`], and the point says

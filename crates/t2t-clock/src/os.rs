@@ -214,7 +214,7 @@ mod tests {
     };
 
     #[test]
-    #[cfg_attr(miri, ignore = "Miri isolates the process from the system's clocks")]
+    #[cfg_attr(miri, ignore = "Miri isolates the process from the OS's clocks")]
     fn the_wall_clock_reads_a_plausible_moment() {
         let now = SystemClock.now();
         assert!(now > Timestamp::from_secs(1_700_000_000), "after November 2023: {now}");
@@ -222,7 +222,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore = "Miri isolates the process from the system's clocks")]
+    #[cfg_attr(miri, ignore = "Miri isolates the process from the OS's clocks")]
     fn a_coarse_clock_trails_its_exact_one_by_under_a_tick() {
         let coarse = CoarseSystemClock.now();
         let exact = SystemClock.now();
@@ -236,7 +236,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore = "Miri isolates the process from the system's clocks")]
+    #[cfg_attr(miri, ignore = "Miri isolates the process from the OS's clocks")]
     fn the_monotonic_clocks_advance_by_what_was_slept() {
         let (start, raw_start, boot_start) =
             (MonotonicClock.now(), RawMonotonicClock.now(), BootClock.now());
@@ -253,7 +253,7 @@ mod tests {
 
     #[test]
     #[cfg(target_os = "linux")]
-    #[cfg_attr(miri, ignore = "Miri isolates the process from the system's clocks")]
+    #[cfg_attr(miri, ignore = "Miri isolates the process from the OS's clocks")]
     fn tai_runs_at_or_ahead_of_the_wall_clock() {
         let wall = SystemClock.now().as_nanos();
         let tai = crate::TaiClock.now().as_nanos();
@@ -263,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg_attr(miri, ignore = "Miri isolates the process from the system's clocks")]
+    #[cfg_attr(miri, ignore = "Miri isolates the process from the OS's clocks")]
     fn the_cpu_clocks_count_the_work_done() {
         let (process_start, thread_start) = (ProcessCpuClock.now(), ThreadCpuClock.now());
         for value in 0_u64..1_000_000 {

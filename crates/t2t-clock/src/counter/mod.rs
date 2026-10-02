@@ -50,8 +50,8 @@ pub struct Counter {
 }
 
 impl Counter {
-    /// The counter, at the rate the CPU reports for it, or on `x86_64`, where `std` brings the OS
-    /// clocks, one measured against them over 10 ms where the CPU reports none.
+    /// The counter, at the rate the CPU reports for it; where it reports none, on `x86_64` with
+    /// `std` on 64-bit Linux or macOS, one measured against the OS clocks over 10 ms.
     ///
     /// # Errors
     /// - [`CounterError::NotInvariant`], the time-stamp counter's rate follows the core's.

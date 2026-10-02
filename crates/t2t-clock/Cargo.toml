@@ -1,6 +1,6 @@
 [package]
 name                   = "t2t-clock"
-description            = "clocks that read the time: the system's wall and monotonic clocks, the CPU's counter, and clocks set by hand."
+description            = "clocks that read the time: the OS's wall and monotonic clocks, the CPU's counter, and clocks set by hand."
 version.workspace      = true
 edition.workspace      = true
 rust-version.workspace = true

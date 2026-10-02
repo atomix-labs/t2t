@@ -63,7 +63,8 @@ impl Visitor<'_> for CountVisitor {
 }
 
 /// Reads a count of `unit`s as nanoseconds: whichever way it was written, where a person reads the
-/// format, and as an `i64` where none does, since such a format cannot say which it holds.
+/// format, and as the `i64` both writers write where none does, since a format that does not
+/// describe itself, as bincode or postcard, reads only the type it is asked for.
 fn read<'de, D: Deserializer<'de>>(deserializer: D, unit: Timedelta) -> Result<i64, D::Error> {
     let count = if deserializer.is_human_readable() {
         deserializer.deserialize_any(CountVisitor)?

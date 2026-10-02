@@ -26,7 +26,7 @@ the operating system unless the `std` feature asks.
 | ----------- | -------------------------------------------------------------------- |
 | `t2t`       | everything, the values at its root and the clocks under `t2t::clock` |
 | `t2t-core`  | the values: points, spans, rates, the calendar, `Timed`; `no_std`    |
-| `t2t-clock` | the clocks: the system's, the CPU's counter, and clocks set by hand  |
+| `t2t-clock` | the clocks: the OS's, the CPU's counter, and clocks set by hand      |
 
 ## Install
 
