@@ -4,12 +4,12 @@ use core::cell::Cell;
 use core::fmt;
 #[cfg(target_has_atomic = "64")]
 use core::marker::PhantomData;
-#[cfg(target_has_atomic = "64")]
-use core::sync::atomic::{AtomicI64, Ordering};
 
 use t2t_core::{TimePoint, Timestamp};
 
 use crate::Clock;
+#[cfg(target_has_atomic = "64")]
+use crate::sync::{AtomicI64, Ordering};
 
 /// A clock set and moved by hand, read on one thread.
 ///
@@ -178,6 +178,7 @@ impl<P: TimePoint + fmt::Debug> fmt::Debug for AtomicManualClock<P> {
 }
 
 #[cfg(test)]
+#[cfg(not(loom))]
 mod tests {
     use std::thread;
 
@@ -216,5 +217,80 @@ mod tests {
         let reference: &dyn Clock<Instant = Timestamp> = &clock;
         assert_eq!(reference.now(), Timestamp::UNIX_EPOCH);
         assert_eq!(std::format!("{clock:?}"), "ManualClock(1970-01-01T00:00:00.000000000Z)");
+    }
+}
+
+// The atomic clock under loom, which runs each model once for every interleaving of its two threads
+// that the memory model allows: `cargo test -p t2t-clock --lib --release --config
+// 'target."cfg(all())".rustflags=["--cfg","loom"]'`. Loom has two gaps here: it orders a store and
+// an exchange that did not see it only partly, so a `set` racing an `advance` is not modelled; and
+// past `advance`'s seed load, its search misses an exchange without Release.
+#[cfg(test)]
+#[cfg(loom)]
+mod model {
+    use loom::sync::Arc;
+    use loom::sync::atomic::{AtomicU64, Ordering};
+    use loom::thread;
+    use t2t_core::{Timedelta, Timestamp};
+
+    use crate::{AtomicManualClock, Clock};
+
+    /// A clock at the epoch, and a note for a thread to write before it moves the clock.
+    fn clock_and_note() -> (Arc<AtomicManualClock>, Arc<AtomicU64>) {
+        (Arc::new(AtomicManualClock::new(Timestamp::UNIX_EPOCH)), Arc::new(AtomicU64::new(0)))
+    }
+
+    #[test]
+    fn a_reader_that_sees_a_set_point_sees_what_was_written_before_it() {
+        loom::model(|| {
+            let (clock, note) = clock_and_note();
+            let setter = {
+                let (clock, note) = (Arc::clone(&clock), Arc::clone(&note));
+                thread::spawn(move || {
+                    // ORDERING: Relaxed; the Release in `set` publishes it.
+                    note.store(7, Ordering::Relaxed);
+                    clock.set(Timestamp::from_secs(1));
+                })
+            };
+            if clock.now() == Timestamp::from_secs(1) {
+                // ORDERING: Relaxed; the Acquire in `now`, which saw the set, orders it after.
+                assert_eq!(note.load(Ordering::Relaxed), 7, "the note written before the set");
+            }
+            setter.join().expect("the setting thread ends");
+        });
+    }
+
+    #[test]
+    fn a_reader_that_sees_an_advance_sees_what_was_written_before_it() {
+        loom::model(|| {
+            let (clock, note) = clock_and_note();
+            let advancer = {
+                let (clock, note) = (Arc::clone(&clock), Arc::clone(&note));
+                thread::spawn(move || {
+                    // ORDERING: Relaxed; the AcqRel exchange in `advance` publishes it.
+                    note.store(7, Ordering::Relaxed);
+                    clock.advance(Timedelta::SECOND);
+                })
+            };
+            if clock.now() == Timestamp::from_secs(1) {
+                // ORDERING: Relaxed; the Acquire in `now`, which saw the advance, orders it after.
+                assert_eq!(note.load(Ordering::Relaxed), 7, "the note written before the advance");
+            }
+            advancer.join().expect("the advancing thread ends");
+        });
+    }
+
+    #[test]
+    fn two_threads_advancing_at_once_both_count() {
+        loom::model(|| {
+            let (clock, _) = clock_and_note();
+            let advancer = {
+                let clock = Arc::clone(&clock);
+                thread::spawn(move || clock.advance(Timedelta::SECOND))
+            };
+            clock.advance(Timedelta::SECOND);
+            advancer.join().expect("the advancing thread ends");
+            assert_eq!(clock.now(), Timestamp::from_secs(2), "neither move lost");
+        });
     }
 }

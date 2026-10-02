@@ -1,6 +1,7 @@
 # What `check.yml`, on x86_64 Linux, cannot show: the tests on arm64 Linux and on macOS, on arm64
-# and on x86_64; every crate built for bare metal, where `std` cannot sneak in; and every crate's
-# every combination of features, built alone, where a feature a crate forgets to forward fails.
+# and on x86_64; every crate built for bare metal, where `std` cannot sneak in; every crate's every
+# combination of features, built alone, where a feature a crate forgets to forward fails; and the
+# loom models of t2t-clock's atomic clock, which try every interleaving its orderings allow.
 name: platforms
 
 on:
@@ -62,3 +63,14 @@ jobs:
           version: 2026.9.13
           install_args: github:taiki-e/cargo-hack
       - run: cargo hack check --workspace --feature-powerset --locked
+
+  loom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: >-
+          cargo test -p t2t-clock --lib --release --locked
+          --config 'target."cfg(all())".rustflags=["--cfg","loom"]'

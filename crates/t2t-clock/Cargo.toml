@@ -49,3 +49,7 @@ libc = { workspace = true, optional = true }
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 # external
 raw-cpuid = { workspace = true }
+
+[target.'cfg(loom)'.dependencies]
+# external
+loom = { workspace = true }

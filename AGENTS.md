@@ -45,7 +45,8 @@ edition, licence and lints from the root `Cargo.toml`. The book is under
 and the lints' nightly options; the crates themselves build on stable, at the
 workspace's `rust-version`. The tools are the versions `.config/mise/` pins.
 `.github/workflows/platforms.yml` is the repository's own: the tests on arm64
-Linux and macOS, the bare-metal builds, and the feature powerset.
+Linux and macOS, the bare-metal builds, the feature powerset, and the loom
+models.
 
 ## Rules
 
@@ -63,6 +64,9 @@ Linux and macOS, the bare-metal builds, and the feature powerset.
 - A new clock is one `system_clock!` in `t2t-clock/src/system.rs`, or a file of
   its own implementing `Clock`, and a row in the clock tables of `t2t-clock`'s
   crate page, the facade's and the README.
+- A change to `AtomicManualClock` runs its loom models, `cargo test -p t2t-clock
+  --lib --release --config 'target."cfg(all())".rustflags=["--cfg","loom"]'`,
+  and keeps its atomics in `sync.rs`, where `--cfg loom` swaps in loom's.
 - No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
   the workspace's `rust-version`, and raising it is a change of its own.
 - Every name is whole words, never a fragment such as `at`, `by` or `held`.

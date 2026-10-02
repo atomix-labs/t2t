@@ -63,6 +63,8 @@ mod counter;
 #[cfg(any(target_arch = "aarch64", target_arch = "x86_64"))]
 mod errors;
 mod manual;
+#[cfg(target_has_atomic = "64")]
+mod sync;
 #[cfg(all(
     feature = "std",
     target_pointer_width = "64",
