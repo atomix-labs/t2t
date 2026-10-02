@@ -12,23 +12,24 @@ repository   = "https://github.com/atomix-labs/t2t"
 
 [workspace.dependencies]
 # external
-chrono     = { version = "0.4.45", default-features = false }
-divan      = { version = "0.1.21" }
-itoa       = { version = "1.0.18", default-features = false }
-jiff       = { version = "0.2.37", default-features = false }
-libc       = { version = "0.2.189", default-features = false }
-loom       = { version = "0.7.2" }
-proptest   = { version = "1.11.0" }
-raw-cpuid  = { version = "11.6.0", default-features = false }
-rstest     = { version = "0.27.0", default-features = false }
-schemars   = { version = "1.2.2", default-features = false }
-serde      = { version = "1.0.229", features = ["derive"] }
-serde_core = { version = "1.0.229", default-features = false }
-serde_json = { version = "1.0.151" }
-serde_test = { version = "1.0.177" }
-thiserror  = { version = "2.0.21", default-features = false }
-time       = { version = "0.3.55", default-features = false }
-zerocopy   = { version = "0.8.59", default-features = false, features = ["derive"] }
+chrono      = { version = "0.4.45", default-features = false }
+divan       = { version = "0.1.21" }
+fancy-regex = { version = "0.19.2" }
+itoa        = { version = "1.0.18", default-features = false }
+jiff        = { version = "0.2.37", default-features = false }
+libc        = { version = "0.2.189", default-features = false }
+loom        = { version = "0.7.2" }
+proptest    = { version = "1.11.0" }
+raw-cpuid   = { version = "11.6.0", default-features = false }
+rstest      = { version = "0.27.0", default-features = false }
+schemars    = { version = "1.2.2", default-features = false }
+serde       = { version = "1.0.229", features = ["derive"] }
+serde_core  = { version = "1.0.229", default-features = false }
+serde_json  = { version = "1.0.151" }
+serde_test  = { version = "1.0.177" }
+thiserror   = { version = "2.0.21", default-features = false }
+time        = { version = "0.3.55", default-features = false }
+zerocopy    = { version = "0.8.59", default-features = false, features = ["derive"] }
 # internal
 t2t-clock = { path = "crates/t2t-clock", version = "0.1.0", default-features = false }
 t2t-core  = { path = "crates/t2t-core", version = "0.1.0", default-features = false }

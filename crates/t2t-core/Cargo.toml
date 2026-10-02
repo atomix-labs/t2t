@@ -45,9 +45,10 @@ zerocopy   = { workspace = true, optional = true }
 
 [dev-dependencies]
 # external
-divan      = { workspace = true }
-proptest   = { workspace = true }
-rstest     = { workspace = true }
-serde      = { workspace = true }
-serde_json = { workspace = true }
-serde_test = { workspace = true }
+divan       = { workspace = true }
+fancy-regex = { workspace = true }
+proptest    = { workspace = true }
+rstest      = { workspace = true }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+serde_test  = { workspace = true }
