@@ -22,3 +22,6 @@ features = ["agents", "nightly", "strict", "oss", "docs", "publish"]
 
 [[layers]]
 profile = "atxp/vscode"
+
+[[layers]]
+profile = "atxp/rust-msrv"

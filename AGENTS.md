@@ -41,10 +41,11 @@ A Cargo workspace of three crates under `crates/`: `t2t-core` holds the values
 (points, spans, rates, the calendar, `Timed`), `t2t-clock` the clocks, and the
 facade `t2t` re-exports both, with the examples. Each inherits its version,
 edition, licence and lints from the root `Cargo.toml`. The book is under
-`docs/`. The toolchain is the nightly `rust-toolchain.toml` pins; the tools are
-the versions `.config/mise/` pins. `.github/workflows/platforms.yml` is the
-repository's own: the tests on arm64 Linux and macOS, the bare-metal builds, and
-the feature powerset.
+`docs/`. The toolchain is the nightly `rust-toolchain.toml` pins, for rustfmt's
+and the lints' nightly options; the crates themselves build on stable, at the
+workspace's `rust-version`. The tools are the versions `.config/mise/` pins.
+`.github/workflows/platforms.yml` is the repository's own: the tests on arm64
+Linux and macOS, the bare-metal builds, and the feature powerset.
 
 ## Rules
 
@@ -62,6 +63,8 @@ the feature powerset.
 - A new clock is one `system_clock!` in `t2t-clock/src/system.rs`, or a file of
   its own implementing `Clock`, and a row in the clock tables of `t2t-clock`'s
   crate page, the facade's and the README.
+- No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
+  the workspace's `rust-version`, and raising it is a change of its own.
 - Every name is whole words, never a fragment such as `at`, `by` or `held`.
 
 <!-- >>> devset: cargo-deny >>> -->

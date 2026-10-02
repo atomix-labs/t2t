@@ -56,8 +56,8 @@ exact = "999fda78529d07085042320b591a87cf749da4f3880f81c201c45ba69ffebe85"
 canonical = "999fda78529d07085042320b591a87cf749da4f3880f81c201c45ba69ffebe85"
 
 [files.".claude/skills/editing-cargo-manifests/SKILL.md"]
-exact = "cdf9c2ae7750021b0e6fd0ae9d2007a76e395f753fbd0f82cf2948748c3e5f19"
-canonical = "cdf9c2ae7750021b0e6fd0ae9d2007a76e395f753fbd0f82cf2948748c3e5f19"
+exact = "1c51536de319e25279a5bdb04e4976f368ea7b8af9a49a82d8a096583dd1074c"
+canonical = "1c51536de319e25279a5bdb04e4976f368ea7b8af9a49a82d8a096583dd1074c"
 
 [files.".claude/skills/editing-cargo-manifests/references/sources.md"]
 exact = "225679cb4054f7eb0d15e904228103d89b07fe34c68d3d0b7aacebfd9c96ed6b"
@@ -168,8 +168,8 @@ exact = "e43d45100e5670583012e3a0162c86b67b1f13f2d3880cc0313624316b551ad6"
 canonical = "e43d45100e5670583012e3a0162c86b67b1f13f2d3880cc0313624316b551ad6"
 
 [files.".claude/skills/writing-readmes/SKILL.md"]
-exact = "2f82b2dff9d56d70090eb758e058f9681e781d924d4d90e887020305531aa183"
-canonical = "2f82b2dff9d56d70090eb758e058f9681e781d924d4d90e887020305531aa183"
+exact = "1ad1fef3559dcf875d33a40a7f1867622bf78ccc502bd93b72f744510cb01475"
+canonical = "1ad1fef3559dcf875d33a40a7f1867622bf78ccc502bd93b72f744510cb01475"
 
 [files.".claude/skills/writing-readmes/references/sources.md"]
 exact = "d39d8d8ead7d8d9dd7f88926b9ec50f526390de89968fd8b3f0a282c88c1ec6a"
@@ -601,6 +601,14 @@ canonical = "aedbb96af3066ea64851f190c37afc8f536e85aae24584cda9b2ce684a77cbf1"
 [files.".just/rust-lints.just"]
 exact = "a83e41cfe290a3a92d757e24db66a98e18f71ab2aef73eea3d2cc95c01ae4ea9"
 canonical = "a83e41cfe290a3a92d757e24db66a98e18f71ab2aef73eea3d2cc95c01ae4ea9"
+
+[files.".just/rust-msrv.just"]
+exact = "0e417786f202a4164409588aaeca2dedf46b1cd91d3f5f973ac04fbb6dc107b5"
+canonical = "0e417786f202a4164409588aaeca2dedf46b1cd91d3f5f973ac04fbb6dc107b5"
+
+[files.".just/rust-msrv.py"]
+exact = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
+canonical = "15246e5f058f93d7b4b540cafb94a501bf83ce4a05210978cb12695855e26851"
 
 [files.".just/rust-toolchain.just"]
 exact = "a98b0657fbbad8edb1c47bffa659ee666cff6c55d19dcb7226726c3c50623799"
@@ -1135,8 +1143,8 @@ policy = "merge"
 
 [parts.justfile.just]
 scope = "block"
-exact = "7e3ab8f301f9dababfaac1ab7e2848e175d598836a0eb93308515d1952f27f34"
-canonical = "bff508845d87f7696038e516b4b0300e5c4a1e838588faafd050585036368cc0"
+exact = "65e81adcb24d8f4ed7a0499c7af94790390adaa633efeb1380acaa6a23f08380"
+canonical = "e132d4384ecb7bdbde084f9b595adaf376e61a8eddf0695fd69bfac7c06b14a2"
 
 [parts."rust-toolchain.toml".rust-toolchain]
 scope = "keys"

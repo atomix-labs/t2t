@@ -3,7 +3,7 @@ version = 2
 [[profiles]]
 name = "just"
 rev = "827ed0ea7ba94363dd1f39673a9f99c98eaa7999"
-digest = "cd5e54dd05f45c8fcddda248a9d51c7039ae166cef5f9e141384d5aee3652b65"
+digest = "6ba63f38b4afed06274efbcfc743009c325423436c01e9b7419e6eae5d4ebfdb"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -84,7 +84,7 @@ tag = "v0.18.0"
 [[profiles]]
 name = "cargo-manifest"
 rev = "827ed0ea7ba94363dd1f39673a9f99c98eaa7999"
-digest = "af68509817a95c2ef32a9fe874d74bfcc7b7aa0cd93b196a9524865391cb9a18"
+digest = "fad506e6f34f6e846f2aefa4afb8bf986170eeb6e67cfe85a7e95c49170caa02"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -364,7 +364,7 @@ pages = ["default"]
 [[profiles]]
 name = "project"
 rev = "827ed0ea7ba94363dd1f39673a9f99c98eaa7999"
-digest = "7bdb42c3b8dc45b36b5019fb07720512b3b2589558891a645574a7162d1decd4"
+digest = "23dcec988d0f3341d4f07bf928f01100f8da91698d481065014d6b37ec94f125"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -502,6 +502,15 @@ strict = ["target"]
 name = "vscode"
 rev = "827ed0ea7ba94363dd1f39673a9f99c98eaa7999"
 digest = "c741706d51d6a5ee5b63225a8b154478e59a62bc15620be9dadd4864eb110627"
+
+[profiles.source]
+git = "https://github.com/atomix-labs/atxp"
+tag = "v0.18.0"
+
+[[profiles]]
+name = "rust-msrv"
+rev = "827ed0ea7ba94363dd1f39673a9f99c98eaa7999"
+digest = "44e5631c6d7f05f1e43c7ecd9d2508d2ac27c6edaab73718192d67f3fb2c7b0b"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
