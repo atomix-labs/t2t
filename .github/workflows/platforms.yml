@@ -1,8 +1,9 @@
 # What `check.yml`, on x86_64 Linux, cannot show: the tests on arm64 Linux and on macOS, on arm64
-# and on x86_64; every crate built for bare metal, where `std` cannot sneak in; every crate's every
-# combination of features, built alone, where a feature a crate forgets to forward fails; the loom
-# models of t2t-clock's atomic clock, which try every interleaving its orderings allow; and the two
-# parsers fuzzed, from the corpus committed under `crates/t2t-core/fuzz/`.
+# and on x86_64; every crate built for bare metal, where `std` cannot sneak in, and for 32-bit
+# Linux, where the OS clocks are left out; every crate's every combination of features, built
+# alone, where a feature a crate forgets to forward fails; the loom models of t2t-clock's atomic
+# clock, which try every interleaving its orderings allow; and the two parsers fuzzed, from the
+# corpus committed under `crates/t2t-core/fuzz/`.
 name: platforms
 
 on:
@@ -44,9 +45,26 @@ jobs:
         with:
           persist-credentials: false
       - run: rustup target add aarch64-unknown-none x86_64-unknown-none
+      # With no feature, and with every feature that needs no `std`.
       - run: |
           for target in aarch64-unknown-none x86_64-unknown-none; do
             cargo build --locked --package t2t-core --package t2t-clock --package t2t --target "$target"
+            cargo build --locked --package t2t --target "$target" \
+              --features chrono-04,jiff-02,schemars,serde,time-03,zerocopy
+          done
+
+  linux-32-bit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # i686, and x32: `x86_64`'s counter, with 32-bit pointers.
+      - run: rustup target add i686-unknown-linux-gnu x86_64-unknown-linux-gnux32
+      - run: |
+          for target in i686-unknown-linux-gnu x86_64-unknown-linux-gnux32; do
+            cargo check --locked --workspace --all-features --target "$target"
           done
 
   features:

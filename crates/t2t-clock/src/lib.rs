@@ -80,7 +80,7 @@ pub use crate::errors::CounterError;
 #[cfg(target_has_atomic = "64")]
 pub use crate::manual::AtomicManualClock;
 pub use crate::manual::ManualClock;
-#[cfg(all(feature = "std", target_os = "linux"))]
+#[cfg(all(feature = "std", target_pointer_width = "64", target_os = "linux"))]
 pub use crate::system::TaiClock;
 #[cfg(all(
     feature = "std",

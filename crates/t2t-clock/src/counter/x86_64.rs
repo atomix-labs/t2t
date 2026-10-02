@@ -25,7 +25,11 @@ pub(super) fn discover_rate() -> Result<TickRate, CounterError> {
 }
 
 /// The counter's rate, measured over 10 ms against the monotonic clock at the hardware's rate.
-#[cfg(all(feature = "std", any(target_os = "linux", target_os = "macos")))]
+#[cfg(all(
+    feature = "std",
+    target_pointer_width = "64",
+    any(target_os = "linux", target_os = "macos")
+))]
 fn measure() -> Option<u64> {
     use core::hint;
 
@@ -50,7 +54,11 @@ fn measure() -> Option<u64> {
 }
 
 /// No clock to measure against.
-#[cfg(not(all(feature = "std", any(target_os = "linux", target_os = "macos"))))]
+#[cfg(not(all(
+    feature = "std",
+    target_pointer_width = "64",
+    any(target_os = "linux", target_os = "macos")
+)))]
 const fn measure() -> Option<u64> {
     None
 }
