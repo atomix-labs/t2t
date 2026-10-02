@@ -73,6 +73,10 @@ cargo-fuzz target a parser.
   installs the tool); what it adds to the corpus is kept small with `cargo fuzz
   cmin`, and a crash it finds, shrunk with `cargo fuzz tmin`, becomes a unit
   test.
+- What the types refuse has a fixture in the crate's `tests/compile_fail/`: two
+  timelines' points, two kinds of span, a `ManualClock` across threads. A new
+  toolchain may reword a message; `TRYBUILD=overwrite cargo test --test
+  trybuild` writes it again, to be read before it is committed.
 - No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
   the workspace's `rust-version`, and raising it is a change of its own.
 - Every name is whole words, never a fragment such as `at`, `by` or `held`.

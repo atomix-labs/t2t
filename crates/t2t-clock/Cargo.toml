@@ -41,6 +41,7 @@ t2t-core = { workspace = true }
 # external
 divan     = { workspace = true }
 raw-cpuid = { workspace = true }
+trybuild  = { workspace = true }
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 # external

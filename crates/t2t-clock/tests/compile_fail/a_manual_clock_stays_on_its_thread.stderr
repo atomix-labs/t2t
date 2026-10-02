@@ -1,0 +1,30 @@
+error[E0277]: `Cell<Timestamp>` cannot be shared between threads safely
+  --> tests/compile_fail/a_manual_clock_stays_on_its_thread.rs:11:21
+   |
+11 |         scope.spawn(|| clock.now());
+   |               ----- ^^^^^^^^^^^^^^ `Cell<Timestamp>` cannot be shared between threads safely
+   |               |
+   |               required by a bound introduced by this call
+   |
+   = help: within `ManualClock`, the trait `Sync` is not implemented for `Cell<Timestamp>`
+   = note: if you want to do aliasing and mutation between multiple threads, use `std::sync::RwLock`
+note: required because it appears within the type `ManualClock`
+  --> src/manual.rs
+   |
+   | pub struct ManualClock<P = Timestamp> {
+   |            ^^^^^^^^^^^
+   = note: required for `&ManualClock` to implement `Send`
+note: required because `clock` is used within this closure
+  --> tests/compile_fail/a_manual_clock_stays_on_its_thread.rs:11:24
+   |
+11 |         scope.spawn(|| clock.now());
+   |                        ^^^^^
+note: required by a bound in `Scope::<'scope, 'env>::spawn`
+  --> $RUST/std/src/thread/scoped.rs
+   |
+   | impl<'scope, 'env> Scope<'scope, 'env> {
+...
+   |     pub fn spawn<F, T>(&'scope self, f: F) -> ScopedJoinHandle<'scope, T>
+   |     where
+   |         F: FnOnce() -> T + Send + 'scope,
+   |                            ^^^^ required by this bound in `Scope::<'scope, 'env>::spawn`
