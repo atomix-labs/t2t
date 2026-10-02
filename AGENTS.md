@@ -37,15 +37,32 @@ with the profile, on `devset update`. Never edit `.devset/`.
 
 ## The Repository
 
-A Cargo workspace of crates for handling time: clocks, counters, and the values
-read from them. Each crate is a directory under `crates/`, a member of the root
-`Cargo.toml`'s workspace, and inherits its version, edition, licence and lints
-from it. The book is under `docs/`. The toolchain is the nightly
-`rust-toolchain.toml` pins; the tools are the versions `.config/mise/` pins.
+A Cargo workspace of three crates under `crates/`: `t2t-core` holds the values
+(points, spans, rates, the calendar, `Timed`), `t2t-clock` the clocks, and the
+facade `t2t` re-exports both, with the examples. Each inherits its version,
+edition, licence and lints from the root `Cargo.toml`. The book is under
+`docs/`. The toolchain is the nightly `rust-toolchain.toml` pins; the tools are
+the versions `.config/mise/` pins. `.github/workflows/platforms.yml` is the
+repository's own: the tests on arm64 Linux and macOS, the bare-metal builds, and
+the feature powerset.
 
 ## Rules
 
-What a change here keeps, beyond what the checks hold it to.
+- `t2t-core` never reaches the operating system: no `libc`, no `std` beyond its
+  `std` feature's conversions.
+- `unsafe` lives in `t2t-clock` alone, each block under an
+  `#[expect(unsafe_code, reason = "…")]` with a `// SAFETY:` comment that
+  discharges what the operation requires.
+- Every operator of a point or a span saturates, and has a `checked_*` twin; the
+  operators come from `ops.rs`'s macros, so every point and span has the same
+  set.
+- A new timeline is a point of its own: its type in `t2t-core`, `point!` and,
+  for nanoseconds, `nanosecond_units!` in `ops.rs`, its name in `clippy.toml`'s
+  `arithmetic-side-effects-allowed`, and its re-export in the facade.
+- A new clock is one `system_clock!` in `t2t-clock/src/system.rs`, or a file of
+  its own implementing `Clock`, and a row in the clock tables of `t2t-clock`'s
+  crate page, the facade's and the README.
+- Every name is whole words, never a fragment such as `at`, `by` or `held`.
 
 <!-- >>> devset: cargo-deny >>> -->
 

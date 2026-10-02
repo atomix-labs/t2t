@@ -42,4 +42,4 @@ release's files and tag never change.
    notes and every file attached, then runs every `publish-*` recipe.
 5. Read the Release's page and its notes.
 
-   `cargo install --locked <crate>` installs the new version from crates.io.
+   `cargo add t2t@x.y.z` takes the new version from crates.io.
