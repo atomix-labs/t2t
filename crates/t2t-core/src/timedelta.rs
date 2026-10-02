@@ -205,7 +205,9 @@ impl fmt::Display for Timedelta {
         } else if self.0 < 0 {
             spelling.text.write_str("-")?;
         }
-        // A unit apiece, so each divides by a constant, which compiles to a multiply.
+        // A unit apiece, so each divides by a constant, which compiles to a multiply: a tenth
+        // faster than a table of units, 46 µs against 52 µs for 1,024 spans on a Graviton4,
+        // measured under `benches/results/2026-10-02T23-14Z-9776c95-span-divisors`.
         spelling.write_unit::<{ NANOS_PER_DAY.unsigned_abs() }>("d")?;
         spelling.write_unit::<{ NANOS_PER_HOUR.unsigned_abs() }>("h")?;
         spelling.write_unit::<{ NANOS_PER_MINUTE.unsigned_abs() }>("m")?;
