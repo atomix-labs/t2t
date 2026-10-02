@@ -10,6 +10,24 @@ license      = "MIT OR Apache-2.0"
 authors      = ["Atomix Labs"]
 repository   = "https://github.com/atomix-labs/t2t"
 
+[workspace.dependencies]
+# external
+chrono     = { version = "0.4.45", default-features = false }
+divan      = { version = "0.1.21" }
+itoa       = { version = "1.0.18", default-features = false }
+jiff       = { version = "0.2.37", default-features = false }
+libc       = { version = "0.2.189", default-features = false }
+proptest   = { version = "1.11.0" }
+raw-cpuid  = { version = "11.6.0", default-features = false }
+rstest     = { version = "0.27.0", default-features = false }
+schemars   = { version = "1.2.2", default-features = false }
+serde      = { version = "1.0.229", features = ["derive"] }
+serde_core = { version = "1.0.229", default-features = false }
+serde_json = { version = "1.0.151" }
+thiserror  = { version = "2.0.21", default-features = false }
+time       = { version = "0.3.55", default-features = false }
+zerocopy   = { version = "0.8.59", default-features = false, features = ["derive"] }
+
 [workspace.lints]
 
 [workspace.lints.rust]

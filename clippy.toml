@@ -1,3 +1,34 @@
+# The operators of t2t's points and spans saturate at the ends of the range rather than overflow,
+# which `arithmetic_side_effects` cannot see; allowed so callers use them directly, with the
+# `checked_*` twins there for a caller to whom overflow is a bug. Each type is named the three ways
+# clippy prints it: inside t2t-core, from t2t-core, and from the facade.
+arithmetic-side-effects-allowed = [
+    "tick::Tick",
+    "t2t_core::Tick",
+    "t2t::Tick",
+    "tick::Ticks",
+    "t2t_core::Ticks",
+    "t2t::Ticks",
+    "timedelta::Timedelta",
+    "t2t_core::Timedelta",
+    "t2t::Timedelta",
+    "timestamp::TaiTimestamp",
+    "t2t_core::TaiTimestamp",
+    "t2t::TaiTimestamp",
+    "timestamp::Timestamp",
+    "t2t_core::Timestamp",
+    "t2t::Timestamp",
+    "uptime::BootTime",
+    "t2t_core::BootTime",
+    "t2t::BootTime",
+    "uptime::RawUptime",
+    "t2t_core::RawUptime",
+    "t2t::RawUptime",
+    "uptime::Uptime",
+    "t2t_core::Uptime",
+    "t2t::Uptime",
+]
+
 allow-dbg-in-tests              = true
 allow-expect-in-tests           = true
 allow-indexing-slicing-in-tests = true
