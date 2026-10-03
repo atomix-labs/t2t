@@ -2,7 +2,8 @@
 
 use cfg_aliases::cfg_aliases;
 
-/// Declares each alias, with the `check-cfg` that lets rustc know it.
+/// Declares each alias, with the `check-cfg` that lets rustc know it. `lib.rs` says each again in
+/// words for docs.rs, on the re-exports it gates.
 fn main() {
     cfg_aliases! {
         // The OS clocks: `clock_gettime`, with a 64-bit `timespec`, on Linux and macOS.

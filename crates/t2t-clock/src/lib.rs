@@ -54,6 +54,9 @@
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+// docs.rs names each gated item's condition in words, as the re-exports below say it, and not
+// by the aliases build.rs declares.
+#![cfg_attr(docsrs, doc(auto_cfg(hide(os_clocks, tai_clock, counter, atomic_clock))))]
 
 #[cfg(test)]
 extern crate alloc;
@@ -67,21 +70,43 @@ mod counter;
 mod errors;
 mod manual;
 #[cfg(os_clocks)]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(
+        feature = "std",
+        target_pointer_width = "64",
+        any(target_os = "linux", target_os = "macos")
+    )))
+)]
 mod os;
 #[cfg(atomic_clock)]
 mod sync;
 
 pub use crate::clock::Clock;
 #[cfg(counter)]
+#[cfg_attr(docsrs, doc(cfg(any(target_arch = "aarch64", target_arch = "x86_64"))))]
 pub use crate::counter::Counter;
 #[cfg(counter)]
+#[cfg_attr(docsrs, doc(cfg(any(target_arch = "aarch64", target_arch = "x86_64"))))]
 pub use crate::errors::CounterError;
 #[cfg(atomic_clock)]
 pub use crate::manual::AtomicManualClock;
 pub use crate::manual::ManualClock;
 #[cfg(tai_clock)]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "std", target_pointer_width = "64", target_os = "linux")))
+)]
 pub use crate::os::TaiClock;
 #[cfg(os_clocks)]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(
+        feature = "std",
+        target_pointer_width = "64",
+        any(target_os = "linux", target_os = "macos")
+    )))
+)]
 pub use crate::os::{
     BootClock, CoarseMonotonicClock, CoarseSystemClock, MonotonicClock, ProcessCpuClock,
     RawMonotonicClock, SystemClock, ThreadCpuClock,
