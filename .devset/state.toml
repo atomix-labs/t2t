@@ -88,8 +88,8 @@ exact = "7baa60eaed457e424d6694b65bfc598a4cb8383088efe307c88a61c525af68e9"
 canonical = "7baa60eaed457e424d6694b65bfc598a4cb8383088efe307c88a61c525af68e9"
 
 [files.".claude/skills/preparing-a-release-for-open-source/SKILL.md"]
-exact = "9e97832918e5ac086320ad7090b2e19b854b8249333807cc17da950efbfd9918"
-canonical = "9e97832918e5ac086320ad7090b2e19b854b8249333807cc17da950efbfd9918"
+exact = "360238156ba15a4cf2e2be9df1c056cd8f337d1e5f8e828175726b98b54bfd6a"
+canonical = "360238156ba15a4cf2e2be9df1c056cd8f337d1e5f8e828175726b98b54bfd6a"
 
 [files.".claude/skills/review-names/SKILL.md"]
 exact = "da66972488e301ae6a750c85c0dbe96348cb87df9a4a9e0767a6c61589637111"
@@ -140,8 +140,8 @@ exact = "6b3c2229064b56f590e367f23d6bdfe1464b8c68be9ce2ac97f33a146a3def71"
 canonical = "6b3c2229064b56f590e367f23d6bdfe1464b8c68be9ce2ac97f33a146a3def71"
 
 [files.".claude/skills/using-devset/SKILL.md"]
-exact = "1b58e22f094fc69b393afe5ad006e4c801799970f8ebf89a26e689a43b9a9a1a"
-canonical = "1b58e22f094fc69b393afe5ad006e4c801799970f8ebf89a26e689a43b9a9a1a"
+exact = "76bd0e2921620997ce87ae94edacf744a1f471a6d419d3bd29527ec32b178307"
+canonical = "76bd0e2921620997ce87ae94edacf744a1f471a6d419d3bd29527ec32b178307"
 
 [files.".claude/skills/writing-prose/SKILL.md"]
 exact = "d4b2c68e29930ca6799bc2fe95c1753277ab0ee7c39880175669b0a79f5cb8c1"
@@ -426,8 +426,8 @@ canonical = "8d45cd4373e6f54a64d663f8aea3cf87a4ff26d0d52d25d44c483301d1091fac"
 policy = "once"
 
 [files.".github/ISSUE_TEMPLATE/config.yml"]
-exact = "558e788aba521fdb192ad50b0ca1367bccea84239f63cf15da7f435fd2545a2d"
-canonical = "558e788aba521fdb192ad50b0ca1367bccea84239f63cf15da7f435fd2545a2d"
+exact = "4d9aae3fc47d2fec707112e46b9a4ec35b6084df35b83b996fe29ec85aa4f3f6"
+canonical = "4d9aae3fc47d2fec707112e46b9a4ec35b6084df35b83b996fe29ec85aa4f3f6"
 policy = "once"
 
 [files.".github/ISSUE_TEMPLATE/feature_request.yml"]
@@ -450,8 +450,8 @@ canonical = "2662523c489fd93f8c2023219f7ccb8a77d4816ce278656bae4d6e8c2f8f1421"
 policy = "once"
 
 [files.".github/release-notes.md"]
-exact = "4a55620371d6424f6189196298c4587fef4949b2b412b699ccb7165fa6ddae30"
-canonical = "4a55620371d6424f6189196298c4587fef4949b2b412b699ccb7165fa6ddae30"
+exact = "8f98bb62d409c37bb503ddd8f322cc0d37415a476a77b20311f1d0f8fc772a8d"
+canonical = "8f98bb62d409c37bb503ddd8f322cc0d37415a476a77b20311f1d0f8fc772a8d"
 policy = "once"
 
 [files.".github/scripts/automation.js"]
@@ -704,8 +704,8 @@ canonical = "4fbf507869e93a564af7d066ee1df8a528c432dd6cf0dbebfa3bcec63cd8c9ec"
 policy = "once"
 
 [files."SUPPORT.md"]
-exact = "f459722b054f5c257ac57d6aa79a1ce8358f5db08c88368edf26501a8c90ac84"
-canonical = "f459722b054f5c257ac57d6aa79a1ce8358f5db08c88368edf26501a8c90ac84"
+exact = "981588789956162db84cca9ed01774e78c7be2c2e2cb00b48b21e48746cdcf97"
+canonical = "981588789956162db84cca9ed01774e78c7be2c2e2cb00b48b21e48746cdcf97"
 policy = "once"
 
 [files."cliff.toml"]
