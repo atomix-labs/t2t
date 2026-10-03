@@ -55,10 +55,13 @@ What a change here keeps, beyond what the checks hold it to.
 
 ### Code
 
-- The ecosystem first: a fixed buffer is arrayvec's, a derivable trait is
-  derived, std's derive or derive_more's, and a padding is powerfmt's. Code is
-  written by hand only where a crate does not fit or measured slower, and says
-  so where it stands.
+- No better way is left: before code is written, std, the workspace's own
+  helpers and the ecosystem are searched for what does it more neatly, and the
+  most concise form that measures as fast is the one taken. A fixed buffer is
+  arrayvec's, a derivable trait is derived, std's derive or derive_more's, a
+  padding is powerfmt's, and a shape that repeats is one macro or helper. Code
+  is written by hand only where nothing fits or what fits measured slower, and
+  says so where it stands.
 - Imports, never paths: a feature's derive comes in through a gated import,
   `#[cfg(feature = "zerocopy")] use zerocopy::{…};`, and neither a body nor an
   attribute names `core::`, `crate::` or another crate's path. A doc link may.
