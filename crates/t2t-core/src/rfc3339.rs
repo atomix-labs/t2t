@@ -24,7 +24,9 @@ const NANOS_PER_SECOND: u32 = 1_000_000_000;
 const FRACTION_SCALES: [u32; FRACTION_DIGITS] =
     [100_000_000, 10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1];
 
-/// Each number below 100 as its two ASCII digits.
+/// Each number below 100 as its two ASCII digits: an instant is written four and a half times as
+/// fast through it as through `write!`'s `{:02}`, 24 µs against 109 µs for 1,024 on a Graviton4,
+/// measured under `benches/results/2026-10-03T08-54Z-635b659-calendar-and-digit-pairs`.
 #[rustfmt::skip]
 const DIGIT_PAIRS: [&str; 100] = [
     "00", "01", "02", "03", "04", "05", "06", "07", "08", "09",

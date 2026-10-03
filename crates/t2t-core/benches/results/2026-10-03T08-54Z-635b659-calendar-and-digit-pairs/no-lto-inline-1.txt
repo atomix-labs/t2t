@@ -1,0 +1,11 @@
+Timer precision: 30 ns
+convert              fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ parse_timestamp   19.24 µs      │ 23.78 µs      │ 19.51 µs      │ 19.55 µs      │ 100     │ 100
+│                    53.19 Mitem/s │ 43.05 Mitem/s │ 52.47 Mitem/s │ 52.35 Mitem/s │         │
+├─ timestamp_to_utc  977.6 ns      │ 983.1 ns      │ 978.8 ns      │ 979.3 ns      │ 100     │ 400
+│                    1.047 Gitem/s │ 1.041 Gitem/s │ 1.046 Gitem/s │ 1.045 Gitem/s │         │
+├─ utc_to_timestamp  5.052 µs      │ 45.78 µs      │ 5.091 µs      │ 5.539 µs      │ 100     │ 100
+│                    202.6 Mitem/s │ 22.36 Mitem/s │ 201.1 Mitem/s │ 184.8 Mitem/s │         │
+╰─ write_timestamp   29.07 µs      │ 34.23 µs      │ 29.17 µs      │ 29.24 µs      │ 100     │ 100
+                     35.22 Mitem/s │ 29.91 Mitem/s │ 35.09 Mitem/s │ 35.01 Mitem/s │         │
+

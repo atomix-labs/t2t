@@ -22,6 +22,12 @@ const YEAR_SHIFT: i64 = 400 * CYCLE_SHIFT;
 /// The days from the shifted calendar's origin, a March 1st, to 1970-01-01.
 const DAY_SHIFT: i64 = EPOCH_DAY + DAYS_PER_CYCLE * CYCLE_SHIFT;
 
+// The conversions are `#[inline]`, so a build without LTO, as a default release build is,
+// inlines them across crates: it reads 1,024 instants as dates in 0.98 µs against 8.0 µs, and
+// dates as instants in 5.1 µs against 6.9. Under fat LTO the first is no faster and the second
+// 13% slower, 5.2 µs against 4.6; both under
+// `benches/results/2026-10-03T08-54Z-635b659-calendar-and-digit-pairs`.
+
 /// A point on the wall clock read as a date and a time of day: UTC, in the proleptic Gregorian
 /// calendar.
 ///
