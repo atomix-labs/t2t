@@ -54,8 +54,9 @@
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-// docs.rs names each gated item's condition in words, as the re-exports below say it, and not
-// by the aliases build.rs declares.
+// docs.rs names what the OS clocks and the counter need in words, as their re-exports below say
+// it, and never by the aliases `build.rs` declares; AtomicManualClock, which builds wherever a
+// 64-bit atomic does, shows none.
 #![cfg_attr(docsrs, doc(auto_cfg(hide(os_clocks, tai_clock, counter, atomic_clock))))]
 
 #[cfg(test)]

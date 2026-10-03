@@ -49,7 +49,7 @@ paths       = ["crates/t2t-clock/**"]
 
 [labels."area: facade"]
 color       = "0e8a16"
-description = "t2t: the facade, its re-exports and its examples"
+description = "t2t: the facade's re-exports and its examples"
 paths       = ["crates/t2t/**"]
 
 [labels."area: docs"]
