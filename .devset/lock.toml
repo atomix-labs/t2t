@@ -285,11 +285,14 @@ agents = ["rust/agents"]
 [[profiles]]
 name = "github-templates"
 rev = "9dc242b988beeec0407b2a30fe8698a8b8afe8b8"
-digest = "afd174e99f038c943e8082ffe652d754de7db33eb76106f91cb5892ce8e7a140"
+digest = "3efad25496ef2c40602486477f54fccf6d4688eeb5bce3b31ddcada16863e5cb"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
 tag = "v0.19.0"
+
+[profiles.features]
+discussions = ["target"]
 
 [[profiles]]
 name = "github-workflow-lint"
@@ -364,7 +367,7 @@ pages = ["default"]
 [[profiles]]
 name = "project"
 rev = "9dc242b988beeec0407b2a30fe8698a8b8afe8b8"
-digest = "032f027676c768df8af1de919ff90f48d247bf60348af61d99e38cfb3fadfd75"
+digest = "9d7d0f0f677396b9300ecd9c18e68cba348e12b08e14c6c330358fae96ab5c33"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
