@@ -16,7 +16,7 @@ fields are public, so one may be built by hand; `is_valid` checks that every
 field names a real date and time, and `to_timestamp` gives the point back, or
 `None` for one that is not valid or is outside 1677-09-21 to 2262-04-11.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:calendar}}
 ```
 
@@ -28,7 +28,7 @@ milliseconds, `{:.0}` none, and nine is the most. A width pads the whole
 spelling, with the fill and alignment given, and never cuts it. `Debug` writes
 what `Display` does.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:write}}
 ```
 
@@ -37,7 +37,7 @@ fraction of one to nine digits, or none. It refuses an offset, a 60th second, a
 date that does not exist, an instant outside the range, and any text after the
 `Z`.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:read}}
 ```
 
@@ -48,7 +48,7 @@ then the zone ` TAI`: `2026-09-16T07:46:12.123456789 TAI`. The precision and the
 width work as they do for a `Timestamp`, and `FromStr` reads the zone back, and
 refuses a `Z`, since an instant in UTC is not one in TAI.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:tai}}
 ```
 
@@ -68,7 +68,7 @@ refuses a span past the range.
 An `Uptime`, a `RawUptime` and a `BootUptime` are written as the span since
 their origin, and read back from it.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:spans}}
 ```
 
@@ -81,7 +81,7 @@ as their count, then ` ticks`: `24 ticks`, `-24 ticks`. A
 what `Display` writes, and nothing else: no `+`, no `1 tick`, no `kHz`, and no
 rate of zero.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:counts}}
 ```
 
@@ -100,6 +100,6 @@ Each spelling has its refusal, and values that share a spelling share it:
 Each is a unit struct, whose message names the spelling it expected, with an
 example of it.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/dates_and_spellings.rs:refusals}}
 ```

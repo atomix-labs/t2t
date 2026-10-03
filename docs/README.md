@@ -11,8 +11,9 @@ A Rust listing on a page is included by its anchor from a test that cargo runs:
 `crates/t2t/tests/book/`, a module a chapter, or `crates/t2t-core/tests/book/`
 for a listing that needs a crate the facade does not depend on, such as
 `serde_json`. `mdbook test` passes no crate of the workspace to rustdoc, so a
-listing that uses one would not compile there; each is fenced `text`, and `cargo
-test` compiles and runs it.
+listing that uses one would not compile there. Each is fenced `rs`, which the
+book's highlighter colours as Rust and rustdoc leaves alone, and `cargo test`
+compiles and runs it.
 
 The book's own look is in `theme/`: the page width, collapsible definitions, and
 a `$` prompt on `console` blocks.

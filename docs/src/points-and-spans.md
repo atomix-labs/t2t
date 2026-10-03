@@ -26,7 +26,7 @@ its origin, so a `Timestamp` holds 1677-09-21 to 2262-04-11.
 A point minus a point is a span, a point plus or minus a span is a point, and
 spans add, subtract, negate, scale by an `i64` and sum. Two points do not add.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:arithmetic}}
 ```
 
@@ -40,7 +40,7 @@ every suspension; and a counter's origin is the hardware's own. A difference
 taken across two of them would be a number with no meaning, so the types refuse
 it. A wall-clock instant minus an uptime does not compile:
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/compile_fail/a_timestamp_minus_an_uptime.rs}}
 ```
 
@@ -51,7 +51,7 @@ it. A wall-clock instant minus an uptime does not compile:
 Nor does a counter's reading moved by nanoseconds, since a tick's length is the
 counter's rate, which the type does not know:
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/compile_fail/a_tickstamp_plus_a_timedelta.rs}}
 ```
 
@@ -80,7 +80,7 @@ does, and `subsec_nanos`, `subsec_micros` and `subsec_millis` give the rest,
 signed as the span is. A point's accessor counts the whole units since its
 origin, so a point before the origin rounds down, to the unit it falls in.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:units}}
 ```
 
@@ -107,7 +107,7 @@ stopping there is right; the twin suits code to which reaching it is a bug. A
 span has no `/`: `checked_div` divides it, refusing zero parts, and `MIN` in
 `-1`.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:saturating}}
 ```
 
@@ -124,7 +124,7 @@ or below it, or at or above it: the minute a trade falls in, or the bar it
 closes. They work on both sides of the origin, take the unit's magnitude, and
 leave the value as it is for a zero unit.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:floor}}
 ```
 
@@ -136,6 +136,6 @@ the operators between the two, and `from_count` and `count`, the point as its
 `Timed::elapsed` do, and a type of your own that wraps a point may implement it
 to join them.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:generic}}
 ```

@@ -27,14 +27,14 @@ takes its count:
 Each is read from the form it is written in. A rate of zero is refused, as serde
 refuses a zero for a `NonZeroU64`.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/serialization.rs:spelled}}
 ```
 
 `serde_test` shows both forms, its `readable` and `compact` standing for the two
 kinds of format:
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/serialization.rs:compact}}
 ```
 
@@ -56,7 +56,7 @@ writes a number, but for nanoseconds since the epoch where a person reads the
 format: those pass what an `f64` holds exactly, so a JSON reader backed by one
 would round them, and they are written as a string.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/serialization.rs:units}}
 ```
 
@@ -65,7 +65,7 @@ A count past what the type holds is refused, with the reason
 what is finer: a timestamp is written as the unit it falls in, rounded down, and
 a span as its whole units toward zero.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/serialization.rs:range}}
 ```
 
@@ -78,7 +78,7 @@ which t2t's tests check on spellings the parser takes and on ones it refuses; a
 date that does not exist, or a count past the range, matches the pattern and is
 the parser's alone to refuse.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/json_schema.rs:schema}}
 ```
 
@@ -102,6 +102,6 @@ A `Timed<u64>` is still read from bytes, its stamp's then its value's, and any
 sixteen bytes make a `UtcDateTime`, so one read from bytes is checked with
 `is_valid`, or by `to_timestamp`, before it is used.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/bytes.rs:bytes}}
 ```

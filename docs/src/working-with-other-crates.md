@@ -30,7 +30,7 @@ A `Timedelta` crosses to std's `Duration` and back by `TryFrom` both ways: a
 `Timedelta` holds about 292 years, so a longer `Duration` is refused. The
 conversion is `core`'s, and needs no feature.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/working_with_other_crates.rs:duration}}
 ```
 
@@ -39,7 +39,7 @@ Linux and macOS reaches past both ends of a timestamp's range, and comes back
 with `TryFrom`, refusing a moment outside it. These need `std`, on 64-bit Linux
 or macOS.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/working_with_other_crates.rs:system-time}}
 ```
 
@@ -54,7 +54,7 @@ chrono's years reach far past 1677 and 2262, so a `DateTime<Utc>` holds every
 timestamp, and a `TimeDelta` every span; a `DateTime` in another zone comes back
 as the instant it names.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/working_with_other_crates.rs:chrono}}
 ```
 
@@ -63,7 +63,7 @@ as the instant it names.
 jiff's `Timestamp` reaches the years -9999 to 9999, so it holds every timestamp,
 and its `SignedDuration` every span.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/working_with_other_crates.rs:jiff}}
 ```
 
@@ -72,6 +72,6 @@ and its `SignedDuration` every span.
 time's `OffsetDateTime` takes every timestamp, at the UTC offset; one at another
 offset comes back as the instant it names. Its `Duration` holds every span.
 
-```text
+```rs
 {{#include ../../crates/t2t-core/tests/book/working_with_other_crates.rs:time}}
 ```

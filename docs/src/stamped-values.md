@@ -5,7 +5,7 @@ captured it with, a `Timestamp` unless a stamp of another timeline is named. It
 says how old the value is at any later point, and reaches the value through
 `Deref`, so a stamped quote's fields read as the quote's own.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/stamped_values.rs:timed}}
 ```
 
@@ -19,7 +19,7 @@ stamp: by the time a reader holds the value, the moment it was captured has
 gone, and a clock read on the reading side would time the reader. `map` makes a
 new value under the same stamp, and `map_stamp` a new stamp over the same value.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/stamped_values.rs:writer}}
 ```
 
@@ -32,7 +32,7 @@ from the pair `(S, T)`.
 The stamp is the first field, so the order a `Timed` derives is chronological,
 and the value decides only between equal stamps.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/stamped_values.rs:order}}
 ```
 
@@ -43,6 +43,6 @@ A `Timed` is `#[repr(C)]`: the stamp at offset zero, then the value. A
 an `i64`. With `zerocopy`, a `Timed` is read from bytes, as
 [Serialization](serialization.md#bytes) shows.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/stamped_values.rs:layout}}
 ```

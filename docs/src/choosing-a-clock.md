@@ -40,7 +40,7 @@ reads no counter: the same moment, to the timer's period, a few milliseconds. It
 answers whether a heartbeat or an expiry is due; it never stamps a capture.
 macOS has no coarse wall clock, so there it reads `CLOCK_REALTIME`.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/choosing_a_clock.rs:stamp}}
 ```
 
@@ -53,7 +53,7 @@ wall clock's time. A leap second does not step it, but it steps with the wall
 clock when the wall clock is set, and when a time service sets the offset. Linux
 alone has the clock.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/choosing_a_clock.rs:tai}}
 ```
 
@@ -66,7 +66,7 @@ the machine sleeps. Linux lets a time service slew its rate; macOS does not.
 deadline that is far off, or polled often; both read an `Uptime`, so their
 readings compare.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/choosing_a_clock.rs:deadline}}
 ```
 
@@ -81,7 +81,7 @@ no time service slews there.
 does not: the clock for a lease or a timeout that must run down across a
 suspension.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/choosing_a_clock.rs:raw-and-boot}}
 ```
 
@@ -92,7 +92,7 @@ suspension.
 count two different times. Each reads a `Timedelta`, the CPU time used so far,
 and each takes a system call, not the fast path the clocks above take.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/choosing_a_clock.rs:cpu}}
 ```
 

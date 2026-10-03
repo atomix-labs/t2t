@@ -5,7 +5,7 @@ Code that takes its clock as a parameter, generic over
 clock in a test. A manual clock reads whatever point it was last set or moved
 to, so a test decides what time it is.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/testing_with_manual_clocks.rs:generic}}
 ```
 
@@ -17,7 +17,7 @@ later, and `advance` moves it by a span, back for a negative one, saturating as
 the point's own addition does. Between moves it stands still, and reading it
 costs a load.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/testing_with_manual_clocks.rs:manual}}
 ```
 
@@ -30,7 +30,7 @@ each moving alone. It is shared by reference, and the code under test takes
 A replay drives the clock from what a capture recorded: the clock is set to each
 stamp in turn, and the code under test reads it as it would read the wall clock.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/testing_with_manual_clocks.rs:replay}}
 ```
 
@@ -39,7 +39,7 @@ stamp in turn, and the code under test reads it as it would read the wall clock.
 A `ManualClock` keeps its point in a `Cell`, so it moves to another thread but
 two threads never share one: the compiler refuses it.
 
-```text
+```rs
 {{#include ../../crates/t2t-clock/tests/compile_fail/a_manual_clock_is_not_shared_across_threads.rs}}
 ```
 
@@ -54,7 +54,7 @@ clock to also sees what that thread wrote before it moved the clock. Two threads
 that advance it at once both count. It builds where the target has 64-bit
 atomics.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/testing_with_manual_clocks.rs:threads}}
 ```
 
@@ -69,6 +69,6 @@ A manual clock holds a point, so a clock of CPU time, which reads a span, has no
 manual twin. `Clock` is one associated type and one method, so a test writes the
 clock it needs:
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/testing_with_manual_clocks.rs:custom}}
 ```

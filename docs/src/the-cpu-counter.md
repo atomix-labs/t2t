@@ -14,7 +14,7 @@ core's at the rate its time-stamp counter is rated for. A reading's origin is
 the hardware's own and means nothing, so only a span converts:
 `Tickdelta::to_timedelta` and `Timedelta::to_tickdelta`, each at a rate.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/the_cpu_counter.rs:rate}}
 ```
 
@@ -43,7 +43,7 @@ measured, as without `std`, or off 64-bit Linux and macOS. Each refusal's
 message says which it is: `counter error: a rate of 42 Hz is outside 1 MHz to 10
 GHz`.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/the_cpu_counter.rs:discover}}
 ```
 
@@ -63,7 +63,7 @@ Where the rate is known, from a config or from a discovery made elsewhere,
 invariant, nor that the rate is plausible. The caller vouches for both. Where
 `discover` refuses and no rate is known, read `MonotonicClock` instead.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/the_cpu_counter.rs:known-rate}}
 ```
 
@@ -103,7 +103,7 @@ quotient, which a property test checks against an `i128` division, on counts
 drawn from every `i64` and rates from every `u64` above zero. A result past the
 range saturates.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/the_cpu_counter.rs:accuracy}}
 ```
 

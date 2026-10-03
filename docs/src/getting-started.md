@@ -18,7 +18,7 @@ The wall clock stamps the moment, since its reading names a moment another
 machine can name too; the monotonic clock times the pause, since no correction
 to the wall clock moves it.
 
-```text
+```rs
 {{#include ../../crates/t2t/tests/book/os/getting_started.rs:first}}
 ```
 
