@@ -4,14 +4,14 @@
 //! Each timeline has its own point, and each kind of count its own span. A point minus a point
 //! is a span, a point plus a span is a point, and points of two timelines never mix:
 //!
-//! | Point            | Timeline                                   | Span                         |
-//! | ---------------- | ------------------------------------------ | ---------------------------- |
-//! | [`Timestamp`]    | the wall clock, from the Unix epoch        | [`Timedelta`]                |
-//! | [`TaiTimestamp`] | International Atomic Time, from 1970 TAI   | [`Timedelta`]                |
-//! | [`Uptime`]       | the monotonic clock, from near boot        | [`Timedelta`]                |
-//! | [`RawUptime`]    | the monotonic clock at the hardware's rate | [`Timedelta`]                |
-//! | [`BootTime`]     | the boot clock, suspensions counted        | [`Timedelta`]                |
-//! | [`Tick`]         | a hardware counter, from its own origin    | [`Ticks`], at a [`TickRate`] |
+//! | Point            | Timeline                                   | Span          |
+//! | ---------------- | ------------------------------------------ | ------------- |
+//! | [`Timestamp`]    | the wall clock, from the Unix epoch        | [`Timedelta`] |
+//! | [`TaiTimestamp`] | International Atomic Time, from 1970 TAI   | [`Timedelta`] |
+//! | [`Uptime`]       | the monotonic clock, from near boot        | [`Timedelta`] |
+//! | [`RawUptime`]    | the monotonic clock at the hardware's rate | [`Timedelta`] |
+//! | [`BootUptime`]   | the boot clock, suspensions counted        | [`Timedelta`] |
+//! | [`Tickstamp`]    | a hardware counter, from its own origin    | [`Tickdelta`] |
 //!
 //! Every point and span is an `i64`, and its operators saturate at the ends of the range rather
 //! than overflow, each with a `checked_*` twin. Every value has a spelling, which `Display` writes
@@ -20,14 +20,14 @@
 //! # Types
 //!
 //! - **Points.** [`Timestamp`] and [`TaiTimestamp`] name a moment another machine names too;
-//!   [`Uptime`], [`RawUptime`] and [`BootTime`] never step; a [`Tick`] is a counter's reading.
-//!   [`TimePoint`] is what they share, for code generic over them.
-//! - **Spans.** [`Timedelta`] counts nanoseconds and [`Ticks`] a counter's ticks; a [`TickRate`]
-//!   turns one into the other.
+//!   [`Uptime`], [`RawUptime`] and [`BootUptime`] never step; a [`Tickstamp`] is a counter's
+//!   reading. [`TimePoint`] is what they share, for code generic over them.
+//! - **Spans.** [`Timedelta`] counts nanoseconds and [`Tickdelta`] a counter's ticks; a
+//!   [`TickRate`] turns one into the other.
 //! - **Views.** [`Timed`] is a value and the stamp it was captured with; [`UtcDateTime`] is a
 //!   timestamp read as a date and a time of day.
 //! - **Refusals.** [`ParseTimestampError`], [`ParseTaiTimestampError`], [`ParseTimedeltaError`],
-//!   [`ParseTicksError`] and [`ParseTickRateError`] for a spelling that does not read;
+//!   [`ParseTickdeltaError`] and [`ParseTickRateError`] for a spelling that does not read;
 //!   [`OutOfRangeError`] for a time another type cannot hold.
 //!
 //! # Examples
@@ -83,14 +83,14 @@ mod uptime;
 mod utc;
 
 pub use crate::errors::{
-    OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTicksError,
+    OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTickdeltaError,
     ParseTimedeltaError, ParseTimestampError,
 };
 pub use crate::point::TimePoint;
-pub use crate::tick::{Tick, Ticks};
+pub use crate::tick::{Tickdelta, Tickstamp};
 pub use crate::tick_rate::TickRate;
 pub use crate::timed::Timed;
 pub use crate::timedelta::Timedelta;
 pub use crate::timestamp::{TaiTimestamp, Timestamp};
-pub use crate::uptime::{BootTime, RawUptime, Uptime};
+pub use crate::uptime::{BootUptime, RawUptime, Uptime};
 pub use crate::utc::UtcDateTime;

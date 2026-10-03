@@ -6,7 +6,7 @@
 
 #![expect(clippy::print_stdout, reason = "a tour prints what it finds")]
 
-use t2t::{Tick, TickRate, Ticks, Timed, Timedelta, Timestamp};
+use t2t::{TickRate, Tickdelta, Tickstamp, Timed, Timedelta, Timestamp};
 
 /// The best prices on a book, worth stamping.
 #[derive(Debug, Clone, Copy)]
@@ -45,8 +45,8 @@ fn main() {
     println!("quote              {} / {}, {age} old, stale: {}", quote.bid, quote.ask, age > stale);
 
     // A counter's ticks mean nothing until a rate says what one is worth.
-    let start = Tick::from_ticks(1_000_000);
-    let ticks = start + Ticks::from_ticks(4_250) - start;
+    let start = Tickstamp::from_ticks(1_000_000);
+    let ticks = start + Tickdelta::from_ticks(4_250) - start;
     let rate = TickRate::GIGAHERTZ;
     println!("counter ran        {ticks}: {} at {rate}", ticks.to_timedelta(rate));
 }

@@ -5,7 +5,8 @@ use core::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use crate::consts::{NANOS_PER_MICROSECOND, NANOS_PER_MILLISECOND, NANOS_PER_SECOND};
 use crate::{
-    BootTime, RawUptime, TaiTimestamp, Tick, Ticks, TimePoint, Timedelta, Timestamp, Uptime,
+    BootUptime, RawUptime, TaiTimestamp, Tickdelta, Tickstamp, TimePoint, Timedelta, Timestamp,
+    Uptime,
 };
 
 /// The nearest multiple of `|unit|` at or below `value`, or `value` for a zero unit.
@@ -422,20 +423,20 @@ macro_rules! nanosecond_units {
 }
 
 span!(Timedelta);
-span!(Ticks);
+span!(Tickdelta);
 
 point!(Timestamp, Timedelta);
 point!(TaiTimestamp, Timedelta);
 point!(Uptime, Timedelta);
 point!(RawUptime, Timedelta);
-point!(BootTime, Timedelta);
-point!(Tick, Ticks);
+point!(BootUptime, Timedelta);
+point!(Tickstamp, Tickdelta);
 
 nanosecond_units!(Timestamp, "the Unix epoch");
 nanosecond_units!(TaiTimestamp, "1970-01-01T00:00:00 TAI");
 nanosecond_units!(Uptime, "the monotonic clock's origin");
 nanosecond_units!(RawUptime, "the raw monotonic clock's origin");
-nanosecond_units!(BootTime, "boot");
+nanosecond_units!(BootUptime, "boot");
 
 #[cfg(test)]
 mod tests {
@@ -443,7 +444,7 @@ mod tests {
 
     use proptest::prelude::{prop_assert, prop_assert_eq, prop_assume, proptest};
 
-    use crate::{Tick, Ticks, Timedelta, Timestamp, Uptime};
+    use crate::{Tickdelta, Tickstamp, Timedelta, Timestamp, Uptime};
 
     #[test]
     fn floor_and_ceil_tile_the_line_on_both_sides_of_zero() {
@@ -477,9 +478,9 @@ mod tests {
         let widest = Timestamp::MAX - Timestamp::MIN;
         assert_eq!(widest, Timedelta::MAX, "a span past its range saturates");
         assert_eq!(Timestamp::MAX.checked_since(Timestamp::MIN), None, "or is refused");
-        let (start, end) = (Tick::from_ticks(1_000), Tick::from_ticks(1_025));
-        assert_eq!(end - start, Ticks::from_ticks(25), "a later reading minus an earlier");
-        assert_eq!(start - end, Ticks::from_ticks(-25), "and the other way about");
+        let (start, end) = (Tickstamp::from_ticks(1_000), Tickstamp::from_ticks(1_025));
+        assert_eq!(end - start, Tickdelta::from_ticks(25), "a later reading minus an earlier");
+        assert_eq!(start - end, Tickdelta::from_ticks(-25), "and the other way about");
     }
 
     #[test]

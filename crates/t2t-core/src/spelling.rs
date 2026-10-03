@@ -23,7 +23,8 @@ pub(crate) fn pad(formatter: &mut fmt::Formatter<'_>, text: &str) -> fmt::Result
 }
 
 /// A count, then its unit, written as one spelling, so a width pads the two together: what a
-/// [`Tick`](crate::Tick), a [`Ticks`](crate::Ticks) and a [`TickRate`](crate::TickRate) display.
+/// [`Tickstamp`](crate::Tickstamp), a [`Tickdelta`](crate::Tickdelta) and a
+/// [`TickRate`](crate::TickRate) display.
 pub(crate) struct Count<I>(pub(crate) I, pub(crate) &'static str);
 
 impl<I: Integer> fmt::Display for Count<I> {

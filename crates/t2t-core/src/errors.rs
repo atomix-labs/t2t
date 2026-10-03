@@ -47,17 +47,17 @@ pub struct ParseTimestampError;
 )]
 pub struct ParseTaiTimestampError;
 
-/// Why a string is not a [`Ticks`](crate::Ticks), nor a [`Tick`](crate::Tick).
+/// Why a string is not a [`Tickdelta`](crate::Tickdelta), nor a [`Tickstamp`](crate::Tickstamp).
 ///
 /// # Examples
 /// ```
-/// use t2t_core::{ParseTicksError, Ticks};
+/// use t2t_core::{ParseTickdeltaError, Tickdelta};
 ///
-/// assert_eq!("24".parse::<Ticks>(), Err(ParseTicksError), "a count names its unit");
+/// assert_eq!("24".parse::<Tickdelta>(), Err(ParseTickdeltaError), "a count names its unit");
 /// ```
 #[derive(Debug, Display, Error, Clone, Copy, PartialEq, Eq, Hash)]
-#[display("parse ticks error: expected a count of ticks, as `24 ticks`")]
-pub struct ParseTicksError;
+#[display("parse tickdelta error: expected a count of ticks, as `24 ticks`")]
+pub struct ParseTickdeltaError;
 
 /// Why a string is not a [`TickRate`](crate::TickRate).
 ///
@@ -94,7 +94,7 @@ mod tests {
     use rstest::rstest;
 
     use crate::{
-        OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTicksError,
+        OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTickdeltaError,
         ParseTimedeltaError, ParseTimestampError,
     };
 
@@ -113,8 +113,8 @@ mod tests {
          as `2026-09-16T07:46:12 TAI`"
     )]
     #[case::a_count_of_ticks(
-        ParseTicksError.to_string(),
-        "parse ticks error: expected a count of ticks, as `24 ticks`"
+        ParseTickdeltaError.to_string(),
+        "parse tickdelta error: expected a count of ticks, as `24 ticks`"
     )]
     #[case::a_rate(
         ParseTickRateError.to_string(),

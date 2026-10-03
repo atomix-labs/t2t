@@ -32,7 +32,7 @@ mod os {
     };
     #[cfg(tai_clock)]
     use t2t_core::TaiTimestamp;
-    use t2t_core::{BootTime, RawUptime, Timedelta, Timestamp, Uptime};
+    use t2t_core::{BootUptime, RawUptime, Timedelta, Timestamp, Uptime};
 
     /// The wall clock.
     #[bench(threads = [1, 2, 4, 8])]
@@ -73,7 +73,7 @@ mod os {
 
     /// The boot clock.
     #[bench(threads = [1, 2, 4, 8])]
-    fn boot() -> BootTime {
+    fn boot() -> BootUptime {
         BootClock.now()
     }
 
@@ -97,7 +97,7 @@ mod counter {
 
     use divan::bench;
     use t2t_clock::{Clock, Counter};
-    use t2t_core::Tick;
+    use t2t_core::Tickstamp;
 
     /// The counter, its rate discovered once.
     #[expect(clippy::expect_used, reason = "a bench has no caller to hand a refused counter to")]
@@ -106,7 +106,7 @@ mod counter {
 
     /// A reading of the counter.
     #[bench(threads = [1, 2, 4, 8])]
-    fn read() -> Tick {
+    fn read() -> Tickstamp {
         COUNTER.now()
     }
 }

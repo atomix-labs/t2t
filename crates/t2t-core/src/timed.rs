@@ -118,7 +118,7 @@ impl<T, S: TimePoint> Timed<T, S> {
 mod tests {
     use core::mem::offset_of;
 
-    use crate::{Tick, Ticks, Timed, Timedelta, Timestamp, Uptime};
+    use crate::{Tickdelta, Tickstamp, Timed, Timedelta, Timestamp, Uptime};
 
     #[test]
     fn the_stamp_leads() {
@@ -138,8 +138,9 @@ mod tests {
         assert_eq!(wall, Timedelta::from_secs(3), "on the wall clock");
         let ahead = Timed::new(Uptime::from_secs(10), ()).elapsed(Uptime::from_secs(9));
         assert_eq!(ahead, -Timedelta::SECOND, "negative for a stamp still ahead");
-        let counted = Timed::new(Tick::from_ticks(1_000), ()).elapsed(Tick::from_ticks(1_025));
-        assert_eq!(counted, Ticks::from_ticks(25), "and in ticks on a counter");
+        let counted =
+            Timed::new(Tickstamp::from_ticks(1_000), ()).elapsed(Tickstamp::from_ticks(1_025));
+        assert_eq!(counted, Tickdelta::from_ticks(25), "and in ticks on a counter");
     }
 
     #[test]

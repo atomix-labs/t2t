@@ -264,18 +264,18 @@ mod tests {
     use alloc::format;
     use std::thread;
 
-    use t2t_core::{Tick, Ticks, Timedelta, Timestamp};
+    use t2t_core::{Tickdelta, Tickstamp, Timedelta, Timestamp};
 
     use crate::{AtomicManualClock, Clock, ManualClock};
 
     #[test]
     fn a_manual_clock_moves_both_ways_and_saturates() {
-        let clock = ManualClock::new(Tick::from_ticks(100));
-        clock.advance(Ticks::from_ticks(-40));
-        assert_eq!(clock.now(), Tick::from_ticks(60), "moved back by a negative span");
-        clock.set(Tick::MAX);
-        clock.advance(Ticks::from_ticks(1));
-        assert_eq!(clock.now(), Tick::MAX, "and saturating at the end");
+        let clock = ManualClock::new(Tickstamp::from_ticks(100));
+        clock.advance(Tickdelta::from_ticks(-40));
+        assert_eq!(clock.now(), Tickstamp::from_ticks(60), "moved back by a negative span");
+        clock.set(Tickstamp::MAX);
+        clock.advance(Tickdelta::from_ticks(1));
+        assert_eq!(clock.now(), Tickstamp::MAX, "and saturating at the end");
     }
 
     #[test]
@@ -300,7 +300,7 @@ mod tests {
         assert_eq!(reference.now(), Timestamp::UNIX_EPOCH, "through a reference");
         let written = format!("{clock:?}");
         assert_eq!(written, "ManualClock(1970-01-01T00:00:00.000000000Z)", "as its reading");
-        let atomic = format!("{:?}", AtomicManualClock::new(Tick::from_ticks(5)));
+        let atomic = format!("{:?}", AtomicManualClock::new(Tickstamp::from_ticks(5)));
         assert_eq!(atomic, "AtomicManualClock(5 ticks)", "for the shared clock too");
     }
 }

@@ -66,10 +66,10 @@ clock's reading, and what one costs on the machine it runs on.
 | `MonotonicClock`       | `Uptime`       | never   | a deadline, a timeout                    |
 | `CoarseMonotonicClock` | `Uptime`       | never   | a far deadline, polled often             |
 | `RawMonotonicClock`    | `RawUptime`    | never   | a span no time service's slewing touches |
-| `BootClock`            | `BootTime`     | never   | a timeout that runs through a suspension |
+| `BootClock`            | `BootUptime`   | never   | a timeout that runs through a suspension |
 | `ProcessCpuClock`      | `Timedelta`    | never   | the CPU time the process has used        |
 | `ThreadCpuClock`       | `Timedelta`    | never   | the CPU time the calling thread has used |
-| `Counter`              | `Tick`         | never   | a stamp or a span in one instruction     |
+| `Counter`              | `Tickstamp`    | never   | a stamp or a span in one instruction     |
 | `ManualClock`          | any point      | by hand | a test or a replay on one thread         |
 | `AtomicManualClock`    | any point      | by hand | a test or a replay shared across threads |
 

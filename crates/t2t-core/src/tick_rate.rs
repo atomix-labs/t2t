@@ -11,7 +11,7 @@ use crate::ParseTickRateError;
 use crate::consts::NANOS_PER_SECOND;
 use crate::spelling::{Count, read_count};
 
-/// How many ticks a counter advances in a second: what turns [`Ticks`](crate::Ticks) into a
+/// How many ticks a counter advances in a second: what turns [`Tickdelta`](crate::Tickdelta) into a
 /// [`Timedelta`](crate::Timedelta) and back.
 ///
 /// A conversion is a multiply and a shift, with factors [`from_hertz`](Self::from_hertz) works out
@@ -21,11 +21,11 @@ use crate::spelling::{Count, read_count};
 ///
 /// # Examples
 /// ```
-/// use t2t_core::{TickRate, Ticks, Timedelta};
+/// use t2t_core::{TickRate, Tickdelta, Timedelta};
 ///
 /// let rate: TickRate = "24000000 Hz".parse()?;
-/// assert_eq!(Ticks::from_ticks(24).to_timedelta(rate), Timedelta::MICROSECOND, "at 24 MHz");
-/// assert_eq!(Timedelta::SECOND.to_ticks(rate), Ticks::from_ticks(24_000_000), "and back");
+/// assert_eq!(Tickdelta::from_ticks(24).to_timedelta(rate), Timedelta::MICROSECOND, "at 24 MHz");
+/// assert_eq!(Timedelta::SECOND.to_ticks(rate), Tickdelta::from_ticks(24_000_000), "and back");
 /// # Ok::<(), t2t_core::ParseTickRateError>(())
 /// ```
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -170,7 +170,7 @@ mod tests {
     use proptest::prelude::{any, prop_assert, proptest};
     use rstest::rstest;
 
-    use crate::{ParseTickRateError, TickRate, Ticks, Timedelta};
+    use crate::{ParseTickRateError, TickRate, Tickdelta, Timedelta};
 
     /// A rate of `hertz`.
     fn rate(hertz: u64) -> TickRate {
@@ -191,24 +191,24 @@ mod tests {
     #[case::a_tsc(3_000_000_000)]
     #[case::a_tsc_from_its_crystal(3_379_200_000)]
     fn a_second_of_ticks_is_a_second(#[case] hertz: u64) {
-        let second = Ticks::from_ticks(i64::try_from(hertz).expect("a rate below `i64::MAX`"));
+        let second = Tickdelta::from_ticks(i64::try_from(hertz).expect("a rate below `i64::MAX`"));
         assert_eq!(second.to_timedelta(rate(hertz)), Timedelta::SECOND, "a second of ticks");
         assert_eq!(Timedelta::SECOND.to_ticks(rate(hertz)), second, "and back, exactly");
     }
 
     #[test]
     fn a_backwards_count_converts_backwards() {
-        let span = Ticks::from_ticks(-24).to_timedelta(rate(24_000_000));
+        let span = Tickdelta::from_ticks(-24).to_timedelta(rate(24_000_000));
         assert_eq!(span, -Timedelta::MICROSECOND, "ticks to nanoseconds");
         let ticks = (-Timedelta::MICROSECOND).to_ticks(rate(3_000_000_000));
-        assert_eq!(ticks, Ticks::from_ticks(-3_000), "and nanoseconds to ticks");
+        assert_eq!(ticks, Tickdelta::from_ticks(-3_000), "and nanoseconds to ticks");
     }
 
     #[test]
     fn a_conversion_past_the_range_saturates() {
-        assert_eq!(Ticks::MAX.to_timedelta(rate(1)), Timedelta::MAX, "forwards");
-        assert_eq!(Ticks::MIN.to_timedelta(rate(1)), Timedelta::MIN, "backwards");
-        assert_eq!(Timedelta::MAX.to_ticks(rate(u64::MAX)), Ticks::MAX, "the other way about");
+        assert_eq!(Tickdelta::MAX.to_timedelta(rate(1)), Timedelta::MAX, "forwards");
+        assert_eq!(Tickdelta::MIN.to_timedelta(rate(1)), Timedelta::MIN, "backwards");
+        assert_eq!(Timedelta::MAX.to_ticks(rate(u64::MAX)), Tickdelta::MAX, "the other way about");
     }
 
     #[test]
@@ -242,7 +242,7 @@ mod tests {
             hertz in 1_u64..,
         ) {
             let rate = rate(hertz);
-            let nanos = Ticks::from_ticks(count).to_timedelta(rate).as_nanos();
+            let nanos = Tickdelta::from_ticks(count).to_timedelta(rate).as_nanos();
             let ticks = Timedelta::from_nanos(count).to_ticks(rate).as_ticks();
             for (actual, exact) in [
                 (nanos, exact(count, 1_000_000_000, hertz)),

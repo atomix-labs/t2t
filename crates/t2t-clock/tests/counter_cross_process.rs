@@ -8,7 +8,7 @@ mod tests {
     use std::process::Command;
 
     use t2t_clock::{Clock, Counter, CounterError};
-    use t2t_core::{Tick, Timedelta};
+    use t2t_core::{Tickstamp, Timedelta};
 
     /// The variable whose presence makes the test print one reading and stop, as the child.
     const CHILD: &str = "T2T_COUNTER_CHILD";
@@ -38,7 +38,7 @@ mod tests {
         let end = counter.now();
 
         assert!(output.status.success(), "the child succeeded: {output:?}");
-        let child_reading: Tick = String::from_utf8_lossy(&output.stdout)
+        let child_reading: Tickstamp = String::from_utf8_lossy(&output.stdout)
             .lines()
             .find_map(|line| line.trim().parse().ok())
             .expect("the child printed a reading");

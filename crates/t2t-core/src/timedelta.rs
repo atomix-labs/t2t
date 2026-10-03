@@ -15,7 +15,7 @@ use crate::consts::{
     NANOS_PER_SECOND,
 };
 use crate::spelling::pad;
-use crate::{OutOfRangeError, ParseTimedeltaError, TickRate, Ticks};
+use crate::{OutOfRangeError, ParseTimedeltaError, TickRate, Tickdelta};
 
 /// The longest spelling, [`Timedelta::MIN`]'s.
 const LONGEST: usize = "-106751d23h47m16s854ms775us808ns".len();
@@ -179,8 +179,8 @@ impl Timedelta {
     /// How many ticks the span lasts at `rate`: a multiply and a shift, to within a tick.
     #[inline]
     #[must_use]
-    pub const fn to_ticks(self, rate: TickRate) -> Ticks {
-        Ticks(rate.nanos_to_ticks(self.0))
+    pub const fn to_ticks(self, rate: TickRate) -> Tickdelta {
+        Tickdelta(rate.nanos_to_ticks(self.0))
     }
 }
 

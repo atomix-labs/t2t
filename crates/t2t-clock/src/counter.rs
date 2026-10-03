@@ -3,7 +3,7 @@
 use core::ops::RangeInclusive;
 
 use arch::{discover_rate, read};
-use t2t_core::{Tick, TickRate};
+use t2t_core::{TickRate, Tickstamp};
 
 use crate::{Clock, CounterError};
 
@@ -14,7 +14,7 @@ const PLAUSIBLE_RATES: RangeInclusive<u64> = 1_000_000..=10_000_000_000;
 /// The CPU's free-running counter: `cntvct_el0` on `aarch64`, the time-stamp counter on `x86_64`.
 ///
 /// A reading is one instruction that touches no memory. Every core and process on a machine reads
-/// the same counter, so a [`Tick`] one process took, another may subtract from. Only the
+/// the same counter, so a [`Tickstamp`] one process took, another may subtract from. Only the
 /// difference of two readings means anything, and the counter's [`rate`](Self::rate) turns it into
 /// a span.
 ///
@@ -71,12 +71,12 @@ impl Counter {
 }
 
 impl Clock for Counter {
-    type Reading = Tick;
+    type Reading = Tickstamp;
 
     #[inline(always)]
     #[expect(clippy::inline_always, reason = "a call around the read would move it")]
-    fn now(&self) -> Tick {
-        Tick::from_ticks(read())
+    fn now(&self) -> Tickstamp {
+        Tickstamp::from_ticks(read())
     }
 }
 
@@ -326,7 +326,7 @@ mod tsc {
 mod tests {
     use core::hint::black_box;
 
-    use t2t_core::{TickRate, Ticks, Timedelta};
+    use t2t_core::{TickRate, Tickdelta, Timedelta};
 
     use super::{PLAUSIBLE_RATES, plausible_rate};
     use crate::{Clock, Counter, CounterError};
@@ -355,7 +355,7 @@ mod tests {
             black_box(value);
         }
         let span = counter.now() - start;
-        assert!(span >= Ticks::ZERO, "the later reading is no earlier: {span}");
+        assert!(span >= Tickdelta::ZERO, "the later reading is no earlier: {span}");
     }
 
     #[test]

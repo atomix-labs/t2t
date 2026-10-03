@@ -60,9 +60,9 @@ pub struct RawUptime(pub(crate) i64);
 ///
 /// # Examples
 /// ```
-/// use t2t_core::{BootTime, Timedelta};
+/// use t2t_core::{BootUptime, Timedelta};
 ///
-/// let lease = BootTime::from_secs(3_600) + Timedelta::HOUR;
+/// let lease = BootUptime::from_secs(3_600) + Timedelta::HOUR;
 /// assert_eq!(lease.to_string(), "2h", "an expiry a suspension cannot carry past");
 /// ```
 #[repr(transparent)]
@@ -70,7 +70,7 @@ pub struct RawUptime(pub(crate) i64);
 #[display("{}", Timedelta(*_0))]
 #[debug("{self}")]
 #[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
-pub struct BootTime(pub(crate) i64);
+pub struct BootUptime(pub(crate) i64);
 
 /// Reading a point counted from boot from the span since its origin.
 macro_rules! read_as_span {
@@ -88,21 +88,21 @@ macro_rules! read_as_span {
 
 read_as_span!(Uptime);
 read_as_span!(RawUptime);
-read_as_span!(BootTime);
+read_as_span!(BootUptime);
 
 #[cfg(test)]
 mod tests {
     use alloc::format;
     use alloc::string::ToString as _;
 
-    use crate::{BootTime, ParseTimedeltaError, RawUptime, Uptime};
+    use crate::{BootUptime, ParseTimedeltaError, RawUptime, Uptime};
 
     #[test]
     fn a_point_from_boot_reads_back_from_its_span() {
         let uptime = Uptime::from_millis(90_250);
         assert_eq!(uptime.to_string(), "1m30s250ms", "written as the span since the origin");
         assert_eq!("1m30s250ms".parse(), Ok(uptime), "and read back");
-        assert_eq!("2h".parse(), Ok(BootTime::from_secs(7_200)), "on every clock from boot");
+        assert_eq!("2h".parse(), Ok(BootUptime::from_secs(7_200)), "on every clock from boot");
         assert_eq!("-".parse::<RawUptime>(), Err(ParseTimedeltaError), "refused as a span is");
     }
 

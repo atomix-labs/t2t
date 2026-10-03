@@ -5,7 +5,8 @@ use alloc::borrow::Cow;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 
 use crate::{
-    BootTime, RawUptime, TaiTimestamp, Tick, TickRate, Ticks, Timedelta, Timestamp, Uptime,
+    BootUptime, RawUptime, TaiTimestamp, TickRate, Tickdelta, Tickstamp, Timedelta, Timestamp,
+    Uptime,
 };
 
 /// The pattern of a span's spelling: `0`, or counts with units, each at most once and coarsest
@@ -79,14 +80,18 @@ spelled_schema!(
     "The span since the raw monotonic clock's origin, as \"1m30s\".",
     span_pattern!(),
 );
-spelled_schema!(BootTime, "The span since boot, as \"1m30s\".", span_pattern!());
-spelled_schema!(Tick, "A counter's reading, a count of ticks, as \"24 ticks\".", ticks_pattern!());
+spelled_schema!(BootUptime, "The span since boot, as \"1m30s\".", span_pattern!());
+spelled_schema!(
+    Tickstamp,
+    "A counter's reading, a count of ticks, as \"24 ticks\".",
+    ticks_pattern!()
+);
 spelled_schema!(
     Timedelta,
     "A signed span: \"0\", or counts with units, each at most once and coarsest first, of d, h, m, s, ms, us, ns, as \"1m30s\".",
     span_pattern!(),
 );
-spelled_schema!(Ticks, "A signed count of ticks, as \"24 ticks\".", ticks_pattern!());
+spelled_schema!(Tickdelta, "A signed count of ticks, as \"24 ticks\".", ticks_pattern!());
 spelled_schema!(
     TickRate,
     "A counter's rate, a count of hertz above zero, as \"24000000 Hz\".",
@@ -102,7 +107,8 @@ mod tests {
     use schemars::{JsonSchema, schema_for};
 
     use crate::{
-        BootTime, RawUptime, TaiTimestamp, Tick, TickRate, Ticks, Timedelta, Timestamp, Uptime,
+        BootUptime, RawUptime, TaiTimestamp, TickRate, Tickdelta, Tickstamp, Timedelta, Timestamp,
+        Uptime,
     };
 
     /// The pattern of `T`'s schema.
@@ -144,7 +150,7 @@ mod tests {
         assert_agree::<Timedelta>(text);
         assert_agree::<Uptime>(text);
         assert_agree::<RawUptime>(text);
-        assert_agree::<BootTime>(text);
+        assert_agree::<BootUptime>(text);
     }
 
     // A date that does not exist, or one past the range, is the parser's alone to refuse.
@@ -178,8 +184,8 @@ mod tests {
     #[case::one_tick("1 tick")]
     #[case::kilohertz("24 kHz")]
     fn the_count_patterns_take_what_their_parsers_read(#[case] text: &str) {
-        assert_agree::<Tick>(text);
-        assert_agree::<Ticks>(text);
+        assert_agree::<Tickstamp>(text);
+        assert_agree::<Tickdelta>(text);
         assert_agree::<TickRate>(text);
     }
 }

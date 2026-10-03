@@ -3,7 +3,7 @@
 use libc::{clock_gettime, clockid_t, timespec};
 #[cfg(tai_clock)]
 use t2t_core::TaiTimestamp;
-use t2t_core::{BootTime, RawUptime, Timedelta, Timestamp, Uptime};
+use t2t_core::{BootUptime, RawUptime, Timedelta, Timestamp, Uptime};
 
 use crate::Clock;
 
@@ -203,7 +203,7 @@ os_clock!(
     /// assert!(BootClock.now() < lease, "a lease that expires across a suspension");
     /// ```
     BootClock,
-    BootTime,
+    BootUptime,
     ids::BOOT
 );
 

@@ -8,7 +8,8 @@ use serde_core::de::{self, Unexpected, Visitor};
 use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{
-    BootTime, RawUptime, TaiTimestamp, Tick, TickRate, Ticks, Timedelta, Timestamp, Uptime,
+    BootUptime, RawUptime, TaiTimestamp, TickRate, Tickdelta, Tickstamp, Timedelta, Timestamp,
+    Uptime,
 };
 
 /// Serializes `$type` as the string its `Display` and `FromStr` agree on, where a person reads the
@@ -92,16 +93,21 @@ spelled!(
     |nanos| Ok(RawUptime::from_nanos(nanos)),
 );
 spelled!(
-    BootTime,
-    BootTimeVisitor,
+    BootUptime,
+    BootUptimeVisitor,
     "the span since boot, as \"1m30s\"",
     i64,
-    BootTime::as_nanos,
-    |nanos| Ok(BootTime::from_nanos(nanos)),
+    BootUptime::as_nanos,
+    |nanos| Ok(BootUptime::from_nanos(nanos)),
 );
-spelled!(Tick, TickVisitor, "a count of ticks, as \"24 ticks\"", i64, Tick::as_ticks, |ticks| Ok(
-    Tick::from_ticks(ticks)
-),);
+spelled!(
+    Tickstamp,
+    TickstampVisitor,
+    "a count of ticks, as \"24 ticks\"",
+    i64,
+    Tickstamp::as_ticks,
+    |ticks| Ok(Tickstamp::from_ticks(ticks)),
+);
 spelled!(
     Timedelta,
     TimedeltaVisitor,
@@ -110,9 +116,14 @@ spelled!(
     Timedelta::as_nanos,
     |nanos| Ok(Timedelta::from_nanos(nanos)),
 );
-spelled!(Ticks, TicksVisitor, "a count of ticks, as \"24 ticks\"", i64, Ticks::as_ticks, |ticks| {
-    Ok(Ticks::from_ticks(ticks))
-},);
+spelled!(
+    Tickdelta,
+    TickdeltaVisitor,
+    "a count of ticks, as \"24 ticks\"",
+    i64,
+    Tickdelta::as_ticks,
+    |ticks| { Ok(Tickdelta::from_ticks(ticks)) },
+);
 // A zero count is refused as serde refuses one for a `NonZeroU64`.
 spelled!(
     TickRate,
@@ -134,7 +145,8 @@ mod tests {
     };
 
     use crate::{
-        BootTime, RawUptime, TaiTimestamp, Tick, TickRate, Ticks, Timedelta, Timestamp, Uptime,
+        BootUptime, RawUptime, TaiTimestamp, TickRate, Tickdelta, Tickstamp, Timedelta, Timestamp,
+        Uptime,
     };
 
     #[test]
@@ -145,10 +157,10 @@ mod tests {
         assert_tokens(&tai.readable(), &[Token::Str("2026-09-16T07:46:12.000000000 TAI")]);
         assert_tokens(&Uptime::from_secs(90).readable(), &[Token::Str("1m30s")]);
         assert_tokens(&RawUptime::from_secs(90).readable(), &[Token::Str("1m30s")]);
-        assert_tokens(&BootTime::from_secs(90).readable(), &[Token::Str("1m30s")]);
-        assert_tokens(&Tick::from_ticks(24).readable(), &[Token::Str("24 ticks")]);
+        assert_tokens(&BootUptime::from_secs(90).readable(), &[Token::Str("1m30s")]);
+        assert_tokens(&Tickstamp::from_ticks(24).readable(), &[Token::Str("24 ticks")]);
         assert_tokens(&Timedelta::from_mins(5).readable(), &[Token::Str("5m")]);
-        assert_tokens(&Ticks::from_ticks(-24).readable(), &[Token::Str("-24 ticks")]);
+        assert_tokens(&Tickdelta::from_ticks(-24).readable(), &[Token::Str("-24 ticks")]);
         let rate = TickRate::from_hertz(24_000_000).expect("a nonzero rate");
         assert_tokens(&rate.readable(), &[Token::Str("24000000 Hz")]);
     }
@@ -160,10 +172,10 @@ mod tests {
         assert_tokens(&TaiTimestamp::from_nanos(7).compact(), &[Token::I64(7)]);
         assert_tokens(&Uptime::from_nanos(7).compact(), &[Token::I64(7)]);
         assert_tokens(&RawUptime::from_nanos(7).compact(), &[Token::I64(7)]);
-        assert_tokens(&BootTime::from_nanos(7).compact(), &[Token::I64(7)]);
-        assert_tokens(&Tick::from_ticks(7).compact(), &[Token::I64(7)]);
+        assert_tokens(&BootUptime::from_nanos(7).compact(), &[Token::I64(7)]);
+        assert_tokens(&Tickstamp::from_ticks(7).compact(), &[Token::I64(7)]);
         assert_tokens(&Timedelta::from_nanos(-7).compact(), &[Token::I64(-7)]);
-        assert_tokens(&Ticks::from_ticks(-7).compact(), &[Token::I64(-7)]);
+        assert_tokens(&Tickdelta::from_ticks(-7).compact(), &[Token::I64(-7)]);
         let rate = TickRate::from_hertz(24_000_000).expect("a nonzero rate");
         assert_tokens(&rate.compact(), &[Token::U64(24_000_000)]);
     }

@@ -14,7 +14,7 @@ use divan::counter::ItemsCount;
 use divan::{Bencher, bench, main as run_benches};
 use proptest::prelude::RngCore as _;
 use proptest::test_runner::{RngAlgorithm, TestRng};
-use t2t_core::{TickRate, Ticks, Timedelta, Timestamp, UtcDateTime};
+use t2t_core::{TickRate, Tickdelta, Timedelta, Timestamp, UtcDateTime};
 
 /// The values each bench converts.
 const COUNT: usize = 1024;
@@ -45,7 +45,7 @@ fn instants() -> Vec<Timestamp> {
 /// Ticks to nanoseconds.
 #[bench]
 fn ticks_to_timedelta(bencher: Bencher<'_, '_>) {
-    let ticks: Vec<Ticks> = counts().into_iter().map(Ticks::from_ticks).collect();
+    let ticks: Vec<Tickdelta> = counts().into_iter().map(Tickdelta::from_ticks).collect();
     bencher.counter(ItemsCount::new(COUNT)).bench_local(|| {
         black_box(&ticks)
             .iter()

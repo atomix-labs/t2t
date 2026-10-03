@@ -9,12 +9,12 @@
 //! | [`TaiTimestamp`] | TAI, from 1970 TAI           | `TaiClock`                               |
 //! | [`Uptime`]       | monotonic clock, near boot   | `MonotonicClock`, `CoarseMonotonicClock` |
 //! | [`RawUptime`]    | monotonic clock, unslewed    | `RawMonotonicClock`                      |
-//! | [`BootTime`]     | boot clock, with suspensions | `BootClock`                              |
-//! | [`Tick`]         | hardware counter             | [`Counter`](clock::Counter)              |
+//! | [`BootUptime`]   | boot clock, with suspensions | `BootClock`                              |
+//! | [`Tickstamp`]    | hardware counter             | [`Counter`](clock::Counter)              |
 //! | [`Timedelta`]    | CPU time used, a span        | `ProcessCpuClock`, `ThreadCpuClock`      |
 //!
-//! The span between two points is a [`Timedelta`], or for a [`Tick`], a count of [`Ticks`] that
-//! its counter's [`TickRate`] turns into one.
+//! The span between two points is a [`Timedelta`], or for a [`Tickstamp`], a count of [`Tickdelta`]
+//! that its counter's [`TickRate`] turns into one.
 //!
 //! Every point and span is an `i64`, every operator saturates at the ends of the range, with a
 //! `checked_*` twin, and every clock answers one verb, [`now`](clock::Clock::now). A workspace that
@@ -72,7 +72,7 @@ pub use t2t_clock as clock;
 #[doc(inline)]
 pub use t2t_core::serde;
 pub use t2t_core::{
-    BootTime, OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTicksError,
-    ParseTimedeltaError, ParseTimestampError, RawUptime, TaiTimestamp, Tick, TickRate, Ticks,
-    TimePoint, Timed, Timedelta, Timestamp, Uptime, UtcDateTime,
+    BootUptime, OutOfRangeError, ParseTaiTimestampError, ParseTickRateError, ParseTickdeltaError,
+    ParseTimedeltaError, ParseTimestampError, RawUptime, TaiTimestamp, TickRate, Tickdelta,
+    Tickstamp, TimePoint, Timed, Timedelta, Timestamp, Uptime, UtcDateTime,
 };
