@@ -29,3 +29,7 @@ profile = "atxp/rust-msrv"
 [[layers]]
 profile = "atxp/project"
 features = ["devset-badge"]
+
+[[layers]]
+profile = "atxp/github-templates"
+features = ["discussions"]
