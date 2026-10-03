@@ -8,7 +8,7 @@
 //! | ---------------------- | -------------- | ------- | ---------------------------------------- |
 //! | `SystemClock`          | `Timestamp`    | yes     | a stamp other machines compare           |
 //! | `CoarseSystemClock`    | `Timestamp`    | yes     | whether a heartbeat or expiry is due     |
-//! | `TaiClock` (Linux)     | `TaiTimestamp` | never   | a stamp on the timescale PTP keeps       |
+//! | `TaiClock` (Linux)     | `TaiTimestamp` | yes     | a stamp on the timescale PTP keeps       |
 //! | `MonotonicClock`       | `Uptime`       | never   | a deadline, a timeout                    |
 //! | `CoarseMonotonicClock` | `Uptime`       | never   | a far deadline, polled often             |
 //! | `RawMonotonicClock`    | `RawUptime`    | never   | a span no time service's slewing touches |
