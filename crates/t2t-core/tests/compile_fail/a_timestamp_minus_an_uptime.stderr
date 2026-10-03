@@ -1,0 +1,19 @@
+error[E0277]: cannot subtract `Uptime` from `Timestamp`
+ --> tests/compile_fail/a_timestamp_minus_an_uptime.rs:6:42
+  |
+6 |     let _span = Timestamp::from_secs(10) - Uptime::from_secs(10);
+  |                                          ^ no implementation for `Timestamp - Uptime`
+  |
+  = help: the trait `Sub<Uptime>` is not implemented for `Timestamp`
+help: `Timestamp` implements trait `Sub<Rhs>`
+ --> src/ops.rs
+  |
+  |         impl Sub<$span> for $point {
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ `Sub<Timedelta>`
+...
+  |         impl Sub for $point {
+  |         ^^^^^^^^^^^^^^^^^^^ `Sub`
+...
+  | point!(Timestamp, Timedelta);
+  | ---------------------------- in this macro invocation
+  = note: this error originates in the macro `point` (in Nightly builds, run with -Z macro-backtrace for more info)

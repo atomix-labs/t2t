@@ -1,0 +1,38 @@
+run-id  = "2026-10-03T08-54Z-635b659-calendar-and-digit-pairs"
+purpose = "what #[inline] on the calendar's conversions costs with and without LTO, and what the digit-pair table saves against write!"
+
+[hardware]
+cpu        = "AWS Graviton4 (Arm Neoverse V2), c8g.8xlarge"
+cores      = 32
+cache-line = 64
+
+[environment]
+kernel        = "Linux 6.12.53-69.119.amzn2023.aarch64"
+isolated-cpus = "6-31"
+placement     = "taskset -c 8"
+
+[toolchain]
+rustc = "1.101.0-nightly (d080e7dff 2026-09-27)"
+flags = "the workspace's floor, +crc"
+
+[parameters]
+command     = "taskset -c 8 cargo bench -p t2t-core --bench convert -- timestamp, built first with --no-run"
+inputs      = "1,024 values a bench, from proptest's ChaCha generator at its fixed seed"
+lto         = "the bench profile: release's settings, fat LTO, one codegen unit"
+no-lto      = "the bench profile with CARGO_PROFILE_BENCH_LTO=false and CARGO_PROFILE_BENCH_CODEGEN_UNITS=16, as a default release build compiles a dependency"
+inline      = "utc.rs as 635b659 has it: #[inline] on to_timestamp, is_valid, to_utc, seconds_from_civil and civil_from_day"
+plain       = "the same, without those five #[inline]"
+write-macro = "plain, with the date and time of day written by write!'s {:04} and {:02} in place of the digit-pair table"
+samples     = 100
+
+[results.median-us-per-1024.lto]
+timestamp-to-utc = { plain = [0.9875, 0.9851], inline = [0.9816, 0.9818] }
+utc-to-timestamp = { plain = [4.559, 4.568], inline = [5.184, 5.184] }
+parse-timestamp  = { plain = [20.58, 20.6], inline = [20.46, 20.44] }
+write-timestamp  = { plain = [24.22, 24.23], write-macro = [108.8, 108.5] }
+
+[results.median-us-per-1024.no-lto]
+timestamp-to-utc = { plain = [8.009, 8.002], inline = [0.9788, 0.9786] }
+utc-to-timestamp = { plain = [6.912, 6.912], inline = [5.091, 5.087] }
+parse-timestamp  = { plain = [29.03, 29.03], inline = [19.51, 19.5] }
+write-timestamp  = { plain = [29.15, 29.15], write-macro = [114.4, 114.4] }

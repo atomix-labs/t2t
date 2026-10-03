@@ -1,6 +1,6 @@
 [package]
 name                   = "t2t"
-description            = "a time, counter and clock library."
+description            = "time values and the clocks that read them, for code where a nanosecond counts."
 version.workspace      = true
 edition.workspace      = true
 rust-version.workspace = true
@@ -8,5 +8,28 @@ license.workspace      = true
 authors.workspace      = true
 repository.workspace   = true
 
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+
+chrono-04 = ["t2t-core/chrono-04"]
+jiff-02   = ["t2t-core/jiff-02"]
+schemars  = ["serde", "t2t-core/schemars"]
+serde     = ["t2t-core/serde"]
+std       = ["t2t-clock/std", "t2t-core/std"]
+time-03   = ["t2t-core/time-03"]
+zerocopy  = ["t2t-core/zerocopy"]
+
 [lints]
 workspace = true
+
+[[example]]
+name              = "clock-tour"
+required-features = ["std"]
+
+[dependencies]
+# internal
+t2t-clock = { workspace = true }
+t2t-core  = { workspace = true }

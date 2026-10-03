@@ -1,0 +1,120 @@
+# What `check.yml`, on x86_64 Linux, cannot show: the tests on arm64 Linux and on macOS, on arm64
+# and on x86_64; every crate built for bare metal, where `std` cannot sneak in, and checked for
+# 32-bit Linux, where the OS clocks are left out; every crate's every combination of features, built
+# alone, where a feature a crate forgets to forward fails; the loom models of t2t-clock's atomic
+# clock, which try every interleaving its orderings allow; and the two parsers fuzzed, from the
+# corpus committed under `crates/t2t-core/fuzz/`.
+name: platforms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # cargo installs the toolchain rust-toolchain.toml names, on every runner.
+  RUSTUP_AUTO_INSTALL: "1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04-arm, macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: cargo test --workspace --all-features --locked
+
+  no-std:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup target add aarch64-unknown-none x86_64-unknown-none
+      # With no feature, and with every feature that needs no `std`.
+      - run: |
+          for target in aarch64-unknown-none x86_64-unknown-none; do
+            cargo build --locked --package t2t-core --package t2t-clock --package t2t --target "$target"
+            cargo build --locked --package t2t --target "$target" \
+              --features chrono-04,jiff-02,schemars,serde,time-03,zerocopy
+          done
+
+  linux-32-bit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # i686, and x32: `x86_64`'s counter, with 32-bit pointers.
+      - run: rustup target add i686-unknown-linux-gnu x86_64-unknown-linux-gnux32
+      - run: |
+          for target in i686-unknown-linux-gnu x86_64-unknown-linux-gnux32; do
+            cargo check --locked --workspace --all-features --target "$target"
+          done
+
+  features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MISE_LOCKED: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-hack, at the version the lock pins.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.13
+          install_args: github:taiki-e/cargo-hack
+      - run: cargo hack check --workspace --feature-powerset --locked
+
+  loom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: >-
+          cargo test -p t2t-clock --lib --release --locked
+          --config 'target."cfg(all())".rustflags=["--cfg","loom"]'
+
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: crates/t2t-core/fuzz
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # No profile pins cargo-fuzz.
+      - run: cargo install cargo-fuzz --version 0.13.2 --locked
+      # Each seed once, then a minute of new inputs.
+      - run: |
+          for target in parse_timedelta parse_timestamp; do
+            cargo fuzz run "$target" -- -runs=0
+            cargo fuzz run "$target" -- -max_total_time=60 -max_len=64
+          done
+      # The input that crashed a target, for `cargo fuzz tmin` to shrink.
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-artifacts
+          path: crates/t2t-core/fuzz/artifacts/

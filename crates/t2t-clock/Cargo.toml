@@ -1,0 +1,64 @@
+[package]
+name                   = "t2t-clock"
+description            = "clocks that read the time: the OS's wall and monotonic clocks, the CPU's counter, and clocks set by hand."
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[package.metadata.cargo-shear]
+ignored-paths = ["tests/compile_fail/*.rs"]
+
+[features]
+default = []
+
+std = ["dep:libc", "derive_more/std", "libc/std", "t2t-core/std"]
+
+[lints]
+workspace = true
+
+[lib]
+bench = false
+
+[[bench]]
+name              = "read"
+harness           = false
+required-features = ["std"]
+
+[[test]]
+name              = "counter_cross_process"
+required-features = ["std"]
+
+[dependencies]
+# external
+derive_more = { workspace = true, features = ["debug", "display", "error"] }
+# internal
+t2t-core = { workspace = true }
+
+[dev-dependencies]
+# external
+divan     = { workspace = true }
+raw-cpuid = { workspace = true }
+rstest    = { workspace = true }
+trybuild  = { workspace = true }
+
+[build-dependencies]
+# external
+cfg_aliases = { workspace = true }
+
+[target.'cfg(all(target_pointer_width = "64", any(target_os = "linux", target_os = "macos")))'.dependencies]
+# external
+libc = { workspace = true, optional = true }
+
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+# external
+raw-cpuid = { workspace = true }
+
+[target.'cfg(loom)'.dependencies]
+# external
+loom = { workspace = true }

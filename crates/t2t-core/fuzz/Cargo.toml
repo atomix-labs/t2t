@@ -1,0 +1,30 @@
+[package]
+name    = "t2t-core-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+# A workspace of its own: cargo-fuzz builds it with flags and a profile of its own, and
+# `fuzz_target!` expands to code the workspace's lints refuse.
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+t2t-core      = { path = ".." }
+
+[[bin]]
+name  = "parse_timedelta"
+path  = "fuzz_targets/parse_timedelta.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "parse_timestamp"
+path  = "fuzz_targets/parse_timestamp.rs"
+test  = false
+doc   = false
+bench = false

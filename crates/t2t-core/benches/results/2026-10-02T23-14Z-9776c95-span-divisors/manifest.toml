@@ -1,0 +1,29 @@
+run-id  = "2026-10-02T23-14Z-9776c95-span-divisors"
+purpose = "what a span's spelling costs, each unit divided by a constant against by a unit read from a table"
+
+[hardware]
+cpu        = "AWS Graviton4 (Arm Neoverse V2), c8g.8xlarge"
+cores      = 32
+cache-line = 64
+
+[environment]
+kernel        = "Linux 6.12.53-69.119.amzn2023.aarch64"
+isolated-cpus = "6-31"
+placement     = "taskset -c 8"
+
+[toolchain]
+rustc   = "1.101.0-nightly (d080e7dff 2026-09-27)"
+profile = "bench: release's settings, fat LTO, one codegen unit, built to unwind"
+flags   = "the workspace's floor, +crc"
+
+[parameters]
+command = "taskset -c 8 cargo bench -p t2t-core --bench convert, built first with --no-run"
+inputs  = "1,024 values a bench, from proptest's ChaCha generator at its fixed seed"
+after   = "Timedelta's Display writing each unit through write_unit::<UNIT>, as 9776c95 has it"
+before  = "Timedelta's Display dividing by a unit read from a table of the seven, on 9776c95 otherwise"
+samples = 100
+
+[results.median-us-per-1024]
+write-timedelta = { before = [51.59, 51.83], after = [46.27, 46.86] }
+parse-timedelta = { before = [32.18, 33.02], after = [31.33, 30.74] }
+write-timestamp = { before = [27.61, 27.62], after = [27.59, 27.58] }

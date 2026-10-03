@@ -4,3 +4,11 @@ failure-output = "immediate-final"
 
 [profile.ci.junit]
 path = "junit.xml"
+
+# Every crate's trybuild suite builds under target/tests/trybuild/, so they run one at a time.
+[test-groups.trybuild]
+max-threads = 1
+
+[[profile.default.overrides]]
+filter     = 'binary(=trybuild)'
+test-group = 'trybuild'

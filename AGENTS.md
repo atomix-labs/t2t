@@ -37,15 +37,90 @@ with the profile, on `devset update`. Never edit `.devset/`.
 
 ## The Repository
 
-A Cargo workspace of crates for handling time: clocks, counters, and the values
-read from them. Each crate is a directory under `crates/`, a member of the root
-`Cargo.toml`'s workspace, and inherits its version, edition, licence and lints
-from it. The book is under `docs/`. The toolchain is the nightly
-`rust-toolchain.toml` pins; the tools are the versions `.config/mise/` pins.
+A Cargo workspace of three crates under `crates/`: `t2t-core` holds the values
+(points, spans, rates, the calendar, `Timed`), `t2t-clock` the clocks, and the
+facade `t2t` re-exports both, with the examples. Each inherits its version,
+edition, licence and lints from the root `Cargo.toml`. The book is under
+`docs/`. The toolchain is the nightly `rust-toolchain.toml` pins, for rustfmt's
+and the lints' nightly options; the crates themselves build on stable, at the
+workspace's `rust-version`. The tools are the versions `.config/mise/` pins.
+`.github/workflows/platforms.yml` is the repository's own: the tests on arm64
+Linux and macOS, the bare-metal builds, the 32-bit Linux check, the feature
+powerset, the loom models, and the fuzz targets. `crates/t2t-core/fuzz/` is a
+workspace of its own, one cargo-fuzz target a parser.
 
 ## Rules
 
 What a change here keeps, beyond what the checks hold it to.
+
+### Code
+
+- No better way is left: before code is written, std, the workspace's own
+  helpers and the ecosystem are searched for what does it more neatly, and the
+  most concise form that measures as fast is the one taken. A fixed buffer is
+  arrayvec's, a derivable trait is derived, std's derive or derive_more's, a
+  padding is powerfmt's, and a shape that repeats is one macro or helper. Code
+  is written by hand only where nothing fits or what fits measured slower, and
+  says so where it stands.
+- Imports, never paths: a feature's derive comes in through a gated import,
+  `#[cfg(feature = "zerocopy")] use zerocopy::{…};`, and neither a body nor an
+  attribute names `core::`, `crate::` or another crate's path. A doc link may.
+- A cfg that repeats is one alias in `t2t-clock/build.rs`, as `os_clocks` is.
+- A value's constructor and accessor name its unit: `from_nanos` and `as_nanos`,
+  `from_ticks` and `as_ticks`, `from_hertz` and `as_hertz`; a conversion is
+  named for what it gives, `to_timedelta` and `to_tickdelta`.
+- Every name is whole words, never a fragment such as `at`, `by` or `held`.
+- `t2t-core` never reaches the operating system: no `libc`, no `std` beyond its
+  `std` feature's conversions.
+- `unsafe` lives in `t2t-clock` alone, each block under an
+  `#[expect(unsafe_code, reason = "…")]` with a `// SAFETY:` comment that
+  discharges what the operation requires.
+- No crate uses a nightly feature: `just check-rust-msrv` builds every crate on
+  the workspace's `rust-version`, and raising it is a change of its own.
+
+### Values and Clocks
+
+- Every operator of a point or a span saturates, and has a `checked_*` twin; the
+  operators come from `ops.rs`'s macros, so every point and span has the same
+  set.
+- Every value has one spelling: `Display` writes it, padded whole to a width,
+  which derive_more passes on only to a lone placeholder, so a count with a unit
+  is `#[display("{}", Count(*_0, " ticks"))]`; `FromStr` reads it back, and
+  values that share a spelling share its refusal, as every integer shares
+  `ParseIntError`; serde takes it where a person reads the format and its count
+  where none does; and its JSON Schema's pattern takes what its parser reads.
+- A new timeline is a point of its own: its type in `t2t-core`, `point!` and,
+  for nanoseconds, `nanosecond_units!` in `ops.rs`, its spelling as above, its
+  name in `clippy.toml`'s `arithmetic-side-effects-allowed`, and its re-export
+  in the facade.
+- A new clock is one `os_clock!` in `t2t-clock/src/os.rs`, or a file of its own
+  implementing `Clock`, and a row in the clock tables of `t2t-clock`'s crate
+  page, the facade's and the README.
+- On a path a reading or a spelling takes, a division divides by a constant, and
+  a claim that one form is faster cites the run under the crate's
+  `benches/results/` that shows it.
+
+### Docs
+
+- Headings are in Title Case, `# Crate Features`, and a crate page's example
+  sits under `# Examples`, as an item's does.
+- Siblings are documented alike: every clock, point, span and refusal has an
+  example, and each feature's row reads the same on every page that lists it.
+
+### Checks Beyond `just check`
+
+- A change to `AtomicManualClock` runs its loom models, `cargo test -p t2t-clock
+  --lib --release --config 'target."cfg(all())".rustflags=["--cfg","loom"]'`,
+  and keeps its atomics in `sync.rs`, where `--cfg loom` swaps in loom's.
+- A change to a parser fuzzes it, `cargo fuzz run parse_timestamp --
+  -max_total_time=300` in `crates/t2t-core/fuzz/` (`cargo install cargo-fuzz`
+  installs the tool); what it adds to the corpus is kept small with `cargo fuzz
+  cmin`, and a crash it finds, shrunk with `cargo fuzz tmin`, becomes a unit
+  test.
+- What the types refuse has a fixture in the crate's `tests/compile_fail/`: two
+  timelines' points, two kinds of span, a `ManualClock` two threads share. A new
+  toolchain may reword a message; `TRYBUILD=overwrite cargo test --test
+  trybuild` writes it again, to be read before it is committed.
 
 <!-- >>> devset: cargo-deny >>> -->
 

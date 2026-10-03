@@ -1,0 +1,19 @@
+Timer precision: 30 ns
+convert                fastest       │ slowest       │ median        │ mean          │ samples │ iters
+├─ parse_timedelta     31.24 µs      │ 70.26 µs      │ 31.33 µs      │ 31.99 µs      │ 100     │ 100
+│                      32.77 Mitem/s │ 14.57 Mitem/s │ 32.68 Mitem/s │ 32 Mitem/s    │         │
+├─ parse_timestamp     20.43 µs      │ 28.36 µs      │ 20.49 µs      │ 20.64 µs      │ 100     │ 100
+│                      50.11 Mitem/s │ 36.1 Mitem/s  │ 49.97 Mitem/s │ 49.59 Mitem/s │         │
+├─ ticks_to_timedelta  1.194 µs      │ 3.731 µs      │ 1.206 µs      │ 1.254 µs      │ 100     │ 100
+│                      857.1 Mitem/s │ 274.4 Mitem/s │ 848.6 Mitem/s │ 816.4 Mitem/s │         │
+├─ timedelta_to_ticks  1.026 µs      │ 1.119 µs      │ 1.034 µs      │ 1.036 µs      │ 100     │ 400
+│                      997.4 Mitem/s │ 914.5 Mitem/s │ 989.9 Mitem/s │ 988.2 Mitem/s │         │
+├─ timestamp_to_utc    975.3 ns      │ 997.1 ns      │ 986.8 ns      │ 986 ns        │ 100     │ 400
+│                      1.049 Gitem/s │ 1.026 Gitem/s │ 1.037 Gitem/s │ 1.038 Gitem/s │         │
+├─ utc_to_timestamp    4.526 µs      │ 7.574 µs      │ 4.564 µs      │ 4.632 µs      │ 100     │ 100
+│                      226.2 Mitem/s │ 135.1 Mitem/s │ 224.3 Mitem/s │ 221 Mitem/s   │         │
+├─ write_timedelta     46.08 µs      │ 52.13 µs      │ 46.27 µs      │ 46.58 µs      │ 100     │ 100
+│                      22.21 Mitem/s │ 19.64 Mitem/s │ 22.13 Mitem/s │ 21.98 Mitem/s │         │
+╰─ write_timestamp     27.45 µs      │ 27.78 µs      │ 27.59 µs      │ 27.59 µs      │ 100     │ 100
+                       37.29 Mitem/s │ 36.85 Mitem/s │ 37.1 Mitem/s  │ 37.1 Mitem/s  │         │
+
