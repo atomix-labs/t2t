@@ -32,61 +32,31 @@ mod os {
     };
     #[cfg(tai_clock)]
     use t2t_core::TaiTimestamp;
-    use t2t_core::{BootUptime, RawUptime, Timedelta, Timestamp, Uptime};
 
-    /// The wall clock.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn system() -> Timestamp {
-        SystemClock.now()
+    /// A reading of each clock both systems have: a clock is a unit struct, so building one with
+    /// `C::default()` costs nothing, and a sample times the reading alone.
+    #[bench(
+        types = [
+            SystemClock,
+            CoarseSystemClock,
+            MonotonicClock,
+            CoarseMonotonicClock,
+            RawMonotonicClock,
+            BootClock,
+            ProcessCpuClock,
+            ThreadCpuClock,
+        ],
+        threads = [1, 2, 4, 8],
+    )]
+    fn read<C: Clock + Default>() -> C::Reading {
+        C::default().now()
     }
 
-    /// The coarse wall clock.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn coarse_system() -> Timestamp {
-        CoarseSystemClock.now()
-    }
-
-    /// International Atomic Time.
+    /// International Atomic Time, which Linux alone has a clock for.
     #[cfg(tai_clock)]
     #[bench(threads = [1, 2, 4, 8])]
     fn tai() -> TaiTimestamp {
         TaiClock.now()
-    }
-
-    /// The monotonic clock.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn monotonic() -> Uptime {
-        MonotonicClock.now()
-    }
-
-    /// The coarse monotonic clock.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn coarse_monotonic() -> Uptime {
-        CoarseMonotonicClock.now()
-    }
-
-    /// The monotonic clock at the hardware's rate.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn raw_monotonic() -> RawUptime {
-        RawMonotonicClock.now()
-    }
-
-    /// The boot clock.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn boot() -> BootUptime {
-        BootClock.now()
-    }
-
-    /// The process's CPU time.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn process_cpu() -> Timedelta {
-        ProcessCpuClock.now()
-    }
-
-    /// The calling thread's CPU time.
-    #[bench(threads = [1, 2, 4, 8])]
-    fn thread_cpu() -> Timedelta {
-        ThreadCpuClock.now()
     }
 }
 

@@ -76,6 +76,7 @@ impl UtcDateTime {
         reason = "a date and time's nanoseconds fit `i128`, and the sum is checked to fit `i64`; `From` \
                   and `TryFrom` are not const"
     )]
+    #[inline]
     pub const fn to_timestamp(self) -> Option<Timestamp> {
         if !self.is_valid() {
             return None;
@@ -92,6 +93,7 @@ impl UtcDateTime {
     /// Whether every field names a real date and time.
     #[must_use]
     #[expect(clippy::as_conversions, reason = "widening is lossless; `From` is not const")]
+    #[inline]
     pub const fn is_valid(self) -> bool {
         self.month >= 1
             && self.month <= 12
@@ -115,6 +117,7 @@ impl Timestamp {
         reason = "counted from the first day a timestamp reaches, its seconds are nonnegative and \
                   inside `u64`, and its days inside `u32`; `TryFrom` is not const"
     )]
+    #[inline]
     pub const fn to_utc(self) -> UtcDateTime {
         // Counted from `FIRST_DAY`, every split is an unsigned division by a constant, and the
         // time of day's in 32 bits.
@@ -165,6 +168,7 @@ const fn days_in_month(year: i32, month: u8) -> u8 {
     clippy::as_conversions,
     reason = "every term stays far inside `i64` for any field values; `From` is not const"
 )]
+#[inline]
 const fn seconds_from_civil(date_time: UtcDateTime) -> i64 {
     let is_january_or_february = date_time.month <= 2;
     let year = date_time.year as i64 + YEAR_SHIFT - is_january_or_february as i64;
@@ -188,6 +192,7 @@ const fn seconds_from_civil(date_time: UtcDateTime) -> i64 {
     reason = "a timestamp's day keeps every term inside `u32`, or `u64` for the year's product, and \
               each part inside its type; `From` and `TryFrom` are not const"
 )]
+#[inline]
 const fn civil_from_day(day: u32) -> (i32, u8, u8) {
     let century_part = 4 * day + 3;
     let days_per_cycle = DAYS_PER_CYCLE as u32;
@@ -207,9 +212,21 @@ const fn civil_from_day(day: u32) -> (i32, u8, u8) {
 #[cfg(test)]
 mod tests {
     use proptest::prelude::{any, prop_assert_eq, prop_oneof, proptest};
+    use rstest::rstest;
 
     use super::{DAYS_PER_CYCLE, EPOCH_DAY, civil_from_day};
     use crate::{Timestamp, UtcDateTime};
+
+    /// A leap day at noon, which a case alters by a field.
+    const LEAP_DAY: UtcDateTime = UtcDateTime {
+        year: 2024,
+        month: 2,
+        day: 29,
+        hour: 12,
+        minute: 0,
+        second: 0,
+        nanosecond: 0,
+    };
 
     /// The date `days` after 1970-01-01, by Howard Hinnant's `civil_from_days`, as a reference.
     #[expect(clippy::arithmetic_side_effects, reason = "a timestamp's day keeps every term small")]
@@ -277,28 +294,32 @@ mod tests {
     }
 
     #[test]
-    fn a_leap_day_is_valid_and_a_february_30th_is_not() {
-        let leap_day = UtcDateTime {
-            year: 2024,
-            month: 2,
-            day: 29,
-            hour: 12,
-            minute: 0,
-            second: 0,
-            nanosecond: 0,
-        };
-        assert!(leap_day.is_valid(), "a leap day exists");
-        let round_trip = leap_day.to_timestamp().map(Timestamp::to_utc);
-        assert_eq!(round_trip, Some(leap_day), "and reads back");
-        assert_eq!(UtcDateTime { day: 30, ..leap_day }.to_timestamp(), None, "no February 30th");
-        assert!(!UtcDateTime { year: 2023, ..leap_day }.is_valid(), "2023 is no leap year");
-        assert!(!UtcDateTime { year: 1900, ..leap_day }.is_valid(), "nor is a century");
-        assert!(UtcDateTime { year: 2000, ..leap_day }.is_valid(), "but every 400th year is");
-        assert!(!UtcDateTime { day: 30, ..leap_day }.is_valid(), "no day past the month's end");
-        assert!(!UtcDateTime { month: 13, ..leap_day }.is_valid(), "no thirteenth month");
-        assert!(!UtcDateTime { second: 60, ..leap_day }.is_valid(), "no leap second");
-        let past_a_second = UtcDateTime { nanosecond: 1_000_000_000, ..leap_day };
-        assert!(!past_a_second.is_valid(), "no fraction of a whole second");
+    fn a_leap_day_reads_back() {
+        let round_trip = LEAP_DAY.to_timestamp().map(Timestamp::to_utc);
+        assert_eq!(round_trip, Some(LEAP_DAY), "a leap day reads back");
+    }
+
+    #[test]
+    fn a_february_30th_has_no_instant() {
+        assert_eq!(UtcDateTime { day: 30, ..LEAP_DAY }.to_timestamp(), None, "no February 30th");
+    }
+
+    #[rstest]
+    #[case::a_leap_day(LEAP_DAY, true)]
+    #[case::a_common_year(UtcDateTime { year: 2023, ..LEAP_DAY }, false)]
+    #[case::a_century(UtcDateTime { year: 1900, ..LEAP_DAY }, false)]
+    #[case::a_400th_year(UtcDateTime { year: 2000, ..LEAP_DAY }, true)]
+    #[case::a_day_past_the_months_end(UtcDateTime { day: 30, ..LEAP_DAY }, false)]
+    #[case::a_13th_month(UtcDateTime { month: 13, ..LEAP_DAY }, false)]
+    #[case::a_leap_second(UtcDateTime { second: 60, ..LEAP_DAY }, false)]
+    #[case::a_whole_second_of_nanoseconds(
+        UtcDateTime { nanosecond: 1_000_000_000, ..LEAP_DAY },
+        false
+    )]
+    fn a_date_time_is_valid_where_every_field_names_a_real_one(
+        #[case] date_time: UtcDateTime, #[case] is_valid: bool,
+    ) {
+        assert_eq!(date_time.is_valid(), is_valid, "as the calendar has it");
     }
 
     proptest! {

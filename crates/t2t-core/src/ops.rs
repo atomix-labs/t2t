@@ -29,6 +29,17 @@ const fn ceil(value: i64, unit: i64) -> i64 {
     }
 }
 
+/// `$count`, an `Option<i64>`, with its count wrapped in `$wrap`: the `Option::map` a
+/// `const fn` cannot call yet.
+macro_rules! wrapped {
+    ($count:expr, $wrap:path) => {
+        match $count {
+            Some(count) => Some($wrap(count)),
+            None => None,
+        }
+    };
+}
+
 /// A span's layout, constants, sign, checked arithmetic and saturating operators.
 macro_rules! span {
     ($span:ident) => {
@@ -74,30 +85,21 @@ macro_rules! span {
             #[inline]
             #[must_use]
             pub const fn checked_add(self, other: Self) -> Option<Self> {
-                match self.0.checked_add(other.0) {
-                    Some(sum) => Some(Self(sum)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_add(other.0), Self)
             }
 
             /// The difference, or `None` past the range.
             #[inline]
             #[must_use]
             pub const fn checked_sub(self, other: Self) -> Option<Self> {
-                match self.0.checked_sub(other.0) {
-                    Some(difference) => Some(Self(difference)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_sub(other.0), Self)
             }
 
             /// The span `factor` times over, or `None` past the range.
             #[inline]
             #[must_use]
             pub const fn checked_mul(self, factor: i64) -> Option<Self> {
-                match self.0.checked_mul(factor) {
-                    Some(product) => Some(Self(product)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_mul(factor), Self)
             }
 
             /// One of `parts` equal parts, truncated toward zero, or `None` for no parts, or for
@@ -105,30 +107,21 @@ macro_rules! span {
             #[inline]
             #[must_use]
             pub const fn checked_div(self, parts: i64) -> Option<Self> {
-                match self.0.checked_div(parts) {
-                    Some(part) => Some(Self(part)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_div(parts), Self)
             }
 
             /// The span backwards, or `None` for [`MIN`](Self::MIN).
             #[inline]
             #[must_use]
             pub const fn checked_neg(self) -> Option<Self> {
-                match self.0.checked_neg() {
-                    Some(negation) => Some(Self(negation)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_neg(), Self)
             }
 
             /// The span forwards, or `None` for [`MIN`](Self::MIN).
             #[inline]
             #[must_use]
             pub const fn checked_abs(self) -> Option<Self> {
-                match self.0.checked_abs() {
-                    Some(magnitude) => Some(Self(magnitude)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_abs(), Self)
             }
 
             /// The nearest multiple of `|unit|` at or below the span, or the span for a zero unit.
@@ -254,30 +247,21 @@ macro_rules! point {
             #[inline]
             #[must_use]
             pub const fn checked_add(self, span: $span) -> Option<Self> {
-                match self.0.checked_add(span.0) {
-                    Some(point) => Some(Self(point)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_add(span.0), Self)
             }
 
             /// The point `span` earlier, or `None` past the range.
             #[inline]
             #[must_use]
             pub const fn checked_sub(self, span: $span) -> Option<Self> {
-                match self.0.checked_sub(span.0) {
-                    Some(point) => Some(Self(point)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_sub(span.0), Self)
             }
 
             /// The span since `start`, or `None` past the span's range.
             #[inline]
             #[must_use]
             pub const fn checked_since(self, start: Self) -> Option<$span> {
-                match self.0.checked_sub(start.0) {
-                    Some(span) => Some($span(span)),
-                    None => None,
-                }
+                wrapped!(self.0.checked_sub(start.0), $span)
             }
 
             /// The nearest multiple of `|unit|` at or below the point, or the point for a zero

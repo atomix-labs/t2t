@@ -41,6 +41,7 @@ use serde_core::de::{self, Visitor};
 use serde_core::{Deserializer, Serializer};
 
 use crate::OutOfRangeError;
+use crate::errors::narrow;
 
 /// Reads a count written as a number or as a decimal string.
 struct CountVisitor;
@@ -57,7 +58,7 @@ impl Visitor<'_> for CountVisitor {
     }
 
     fn visit_u64<E: de::Error>(self, count: u64) -> Result<i64, E> {
-        i64::try_from(count).map_err(|_past_the_range| E::custom(OutOfRangeError))
+        narrow(count).map_err(E::custom)
     }
 
     fn visit_str<E: de::Error>(self, count: &str) -> Result<i64, E> {
@@ -260,6 +261,7 @@ mod tests {
     use alloc::format;
     use alloc::string::ToString as _;
 
+    use rstest::rstest;
     use serde::{Deserialize, Serialize};
     use serde_json::{from_str, to_string};
     use serde_test::{Configure as _, Token, assert_tokens};
@@ -292,11 +294,8 @@ mod tests {
         budget: Some(Timedelta::from_nanos(500)),
     };
 
-    /// Whether reading `expiry` through `timestamp::secs` fails with a message opening `message`.
-    fn is_refused(expiry: &str, message: &str) -> bool {
-        let document = format!(r#"{{"expiry":{expiry},"exact":"0","poll":0,"budget":null}}"#);
-        from_str::<Fields>(&document).is_err_and(|error| error.to_string().starts_with(message))
-    }
+    /// The reason a count past what its type holds is refused for.
+    const OUT_OF_RANGE: &str = "out of range error: the time is outside what the target type holds";
 
     #[test]
     fn each_unit_round_trips_as_its_count() {
@@ -338,10 +337,16 @@ mod tests {
         assert_eq!(read, Fields { budget: None, ..FIELDS }, "each count, however it came");
     }
 
-    #[test]
-    fn a_count_past_the_range_or_not_a_count_is_refused() {
-        assert!(is_refused("253402300799", "out of range error"), "the year 9999");
-        assert!(is_refused(r#""soon""#, "invalid digit"), "not a count");
-        assert!(is_refused("18446744073709551615", "out of range error"), "past an `i64`");
+    #[rstest]
+    #[case::the_year_9999("253402300799", OUT_OF_RANGE)]
+    #[case::not_a_count(r#""soon""#, "invalid digit found in string")]
+    #[case::past_an_i64("18446744073709551615", OUT_OF_RANGE)]
+    fn a_count_past_the_range_or_not_a_count_is_refused(
+        #[case] expiry: &str, #[case] reason: &str,
+    ) {
+        let document = format!(r#"{{"expiry":{expiry},"exact":"0","poll":0,"budget":null}}"#);
+        let error = from_str::<Fields>(&document).expect_err("a count the field refuses");
+        let written = error.to_string();
+        assert_eq!(written.split(" at line ").next(), Some(reason), "refused for its reason");
     }
 }

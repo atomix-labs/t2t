@@ -3,6 +3,7 @@
 use core::time::Duration;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::errors::narrow;
 use crate::{OutOfRangeError, Timestamp};
 
 /// A `SystemTime` here counts 64-bit seconds, which reach past both ends of a [`Timestamp`].
@@ -23,12 +24,10 @@ impl TryFrom<SystemTime> for Timestamp {
     #[inline]
     fn try_from(instant: SystemTime) -> Result<Self, Self::Error> {
         let nanos = match instant.duration_since(UNIX_EPOCH) {
-            Ok(span) => i64::try_from(span.as_nanos()).ok(),
-            Err(error) => {
-                i64::try_from(0_i128.saturating_sub_unsigned(error.duration().as_nanos())).ok()
-            },
+            Ok(span) => narrow(span.as_nanos()),
+            Err(error) => narrow(0_i128.saturating_sub_unsigned(error.duration().as_nanos())),
         };
-        nanos.map(Self).ok_or(OutOfRangeError)
+        nanos.map(Self)
     }
 }
 

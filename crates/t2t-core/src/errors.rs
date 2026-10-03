@@ -87,6 +87,12 @@ pub struct ParseTickRateError;
 #[display("out of range error: the time is outside what the target type holds")]
 pub struct OutOfRangeError;
 
+/// `count` narrowed to a `T`, or the refusal of one past what a `T` holds.
+#[inline]
+pub(crate) fn narrow<T, N: TryInto<T>>(count: N) -> Result<T, OutOfRangeError> {
+    count.try_into().map_err(|_past_the_range| OutOfRangeError)
+}
+
 #[cfg(test)]
 mod tests {
     use alloc::string::{String, ToString as _};

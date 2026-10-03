@@ -14,11 +14,34 @@ use crate::consts::{
     NANOS_PER_DAY, NANOS_PER_HOUR, NANOS_PER_MICROSECOND, NANOS_PER_MILLISECOND, NANOS_PER_MINUTE,
     NANOS_PER_SECOND,
 };
+use crate::errors::narrow;
 use crate::spelling::pad;
 use crate::{OutOfRangeError, ParseTimedeltaError, TickRate, Tickdelta};
 
 /// The longest spelling, [`Timedelta::MIN`]'s.
 const LONGEST: usize = "-106751d23h47m16s854ms775us808ns".len();
+
+/// A span's constructor and accessor in each unit from microseconds to days, inside its `impl`.
+macro_rules! span_units {
+    ($($unit:literal: $from:ident($count:ident), $as:ident, $nanos:ident;)*) => {
+        $(
+            #[doc = concat!("A span of `", stringify!($count), "` ", $unit, ", saturating.")]
+            #[inline]
+            #[must_use]
+            pub const fn $from($count: i64) -> Self {
+                Self($count.saturating_mul($nanos))
+            }
+        )*
+        $(
+            #[doc = concat!("The span in whole ", $unit, ", truncated toward zero.")]
+            #[inline]
+            #[must_use]
+            pub const fn $as(self) -> i64 {
+                self.0 / $nanos
+            }
+        )*
+    };
+}
 
 /// A signed span of nanoseconds: how far apart two points on one timeline are.
 ///
@@ -64,48 +87,6 @@ impl Timedelta {
         Self(nanos)
     }
 
-    /// A span of `micros` microseconds, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_micros(micros: i64) -> Self {
-        Self(micros.saturating_mul(NANOS_PER_MICROSECOND))
-    }
-
-    /// A span of `millis` milliseconds, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_millis(millis: i64) -> Self {
-        Self(millis.saturating_mul(NANOS_PER_MILLISECOND))
-    }
-
-    /// A span of `secs` seconds, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_secs(secs: i64) -> Self {
-        Self(secs.saturating_mul(NANOS_PER_SECOND))
-    }
-
-    /// A span of `mins` minutes, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_mins(mins: i64) -> Self {
-        Self(mins.saturating_mul(NANOS_PER_MINUTE))
-    }
-
-    /// A span of `hours` hours, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_hours(hours: i64) -> Self {
-        Self(hours.saturating_mul(NANOS_PER_HOUR))
-    }
-
-    /// A span of `days` days of 24 hours, saturating.
-    #[inline]
-    #[must_use]
-    pub const fn from_days(days: i64) -> Self {
-        Self(days.saturating_mul(NANOS_PER_DAY))
-    }
-
     /// The span in nanoseconds.
     #[inline]
     #[must_use]
@@ -113,46 +94,13 @@ impl Timedelta {
         self.0
     }
 
-    /// The span in whole microseconds, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_micros(self) -> i64 {
-        self.0 / NANOS_PER_MICROSECOND
-    }
-
-    /// The span in whole milliseconds, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_millis(self) -> i64 {
-        self.0 / NANOS_PER_MILLISECOND
-    }
-
-    /// The span in whole seconds, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_secs(self) -> i64 {
-        self.0 / NANOS_PER_SECOND
-    }
-
-    /// The span in whole minutes, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_mins(self) -> i64 {
-        self.0 / NANOS_PER_MINUTE
-    }
-
-    /// The span in whole hours, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_hours(self) -> i64 {
-        self.0 / NANOS_PER_HOUR
-    }
-
-    /// The span in whole days of 24 hours, truncated toward zero.
-    #[inline]
-    #[must_use]
-    pub const fn as_days(self) -> i64 {
-        self.0 / NANOS_PER_DAY
+    span_units! {
+        "microseconds": from_micros(micros), as_micros, NANOS_PER_MICROSECOND;
+        "milliseconds": from_millis(millis), as_millis, NANOS_PER_MILLISECOND;
+        "seconds": from_secs(secs), as_secs, NANOS_PER_SECOND;
+        "minutes": from_mins(mins), as_mins, NANOS_PER_MINUTE;
+        "hours": from_hours(hours), as_hours, NANOS_PER_HOUR;
+        "days of 24 hours": from_days(days), as_days, NANOS_PER_DAY;
     }
 
     /// The nanoseconds past the whole seconds, signed as the span is.
@@ -179,7 +127,7 @@ impl Timedelta {
     /// How many ticks the span lasts at `rate`: a multiply and a shift, to within a tick.
     #[inline]
     #[must_use]
-    pub const fn to_ticks(self, rate: TickRate) -> Tickdelta {
+    pub const fn to_tickdelta(self, rate: TickRate) -> Tickdelta {
         Tickdelta(rate.nanos_to_ticks(self.0))
     }
 }
@@ -319,7 +267,7 @@ impl TryFrom<Timedelta> for Duration {
 
     #[inline]
     fn try_from(span: Timedelta) -> Result<Self, Self::Error> {
-        u64::try_from(span.0).map(Self::from_nanos).map_err(|_past_the_range| OutOfRangeError)
+        narrow(span.0).map(Self::from_nanos)
     }
 }
 
@@ -329,7 +277,7 @@ impl TryFrom<Duration> for Timedelta {
 
     #[inline]
     fn try_from(duration: Duration) -> Result<Self, Self::Error> {
-        i64::try_from(duration.as_nanos()).map(Self).map_err(|_past_the_range| OutOfRangeError)
+        narrow(duration.as_nanos()).map(Self)
     }
 }
 

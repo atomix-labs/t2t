@@ -132,6 +132,9 @@ mod atomic {
             reason = "the point's own addition, which saturates for t2t's"
         )]
         pub fn advance(&self, span: P::Span) {
+            // By hand: std's `update` is this loop, but loom 0.7's atomics have only
+            // `fetch_update`, which the pinned nightly deprecates for `try_update`.
+            //
             // ORDERING: Relaxed; the count only seeds the exchange, which orders the move.
             let mut expected = self.reading.load(Ordering::Relaxed);
             loop {

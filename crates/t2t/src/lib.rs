@@ -13,8 +13,8 @@
 //! | [`Tickstamp`]    | hardware counter             | [`Counter`](clock::Counter)              |
 //! | [`Timedelta`]    | CPU time used, a span        | `ProcessCpuClock`, `ThreadCpuClock`      |
 //!
-//! The span between two points is a [`Timedelta`], or for a [`Tickstamp`], a count of [`Tickdelta`]
-//! that its counter's [`TickRate`] turns into one.
+//! The span between two points is a [`Timedelta`], or for a [`Tickstamp`], a [`Tickdelta`] that its
+//! counter's [`TickRate`] turns into one.
 //!
 //! Every point and span is an `i64`, every operator saturates at the ends of the range, with a
 //! `checked_*` twin, and every clock answers one verb, [`now`](clock::Clock::now). A workspace that

@@ -37,7 +37,7 @@ const PLAUSIBLE_RATES: RangeInclusive<u64> = 1_000_000..=10_000_000_000;
 /// assert!(took < Timedelta::from_millis(1), "two reads back to back");
 /// # Ok::<(), t2t_clock::CounterError>(())
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Counter {
     /// Ticks a second.
     rate: TickRate,

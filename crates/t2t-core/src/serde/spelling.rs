@@ -2,7 +2,6 @@
 //! its count, where none does.
 
 use core::fmt;
-use core::str::FromStr;
 
 use serde_core::de::{self, Unexpected, Visitor};
 use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
@@ -12,36 +11,34 @@ use crate::{
     Uptime,
 };
 
-/// Serializes `$type` as the string its `Display` and `FromStr` agree on, where a person reads the
-/// format, and as `$as_count`'s `$count` where none does, read back through `$from_count`.
+/// Serializes `$type` as the string its `Display` and `FromStr` agree on where a person reads the
+/// format, and as its count where none does.
+///
+/// The count is an `i64`, or `$as_count`'s `$count`, read back through `$from_count`.
 macro_rules! spelled {
-    (
-        $type:ident,
-        $visitor:ident,
-        $expecting:literal,
-        $count:ty,
-        $as_count:path,
-        $from_count:expr $(,)?
-    ) => {
-        /// Reads the value from its spelling.
-        struct $visitor;
-
-        impl Visitor<'_> for $visitor {
-            type Value = $type;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str($expecting)
-            }
-
-            fn visit_str<E: de::Error>(self, text: &str) -> Result<$type, E> {
-                $type::from_str(text).map_err(E::custom)
-            }
-        }
-
+    ($type:ident, $expecting:literal $(,)?) => {
+        spelled!($type, $expecting, i64, |value: $type| value.0, |count| Ok($type(count)));
+    };
+    ($type:ident, $expecting:literal, $count:ty, $as_count:expr, $from_count:expr $(,)?) => {
         impl<'de> Deserialize<'de> for $type {
             fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                /// Reads the value from its spelling.
+                struct Spelling;
+
+                impl Visitor<'_> for Spelling {
+                    type Value = $type;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                        formatter.write_str($expecting)
+                    }
+
+                    fn visit_str<E: de::Error>(self, text: &str) -> Result<$type, E> {
+                        text.parse().map_err(E::custom)
+                    }
+                }
+
                 if deserializer.is_human_readable() {
-                    deserializer.deserialize_str($visitor)
+                    deserializer.deserialize_str(Spelling)
                 } else {
                     ($from_count)(<$count>::deserialize(deserializer)?)
                 }
@@ -53,81 +50,24 @@ macro_rules! spelled {
                 if serializer.is_human_readable() {
                     serializer.collect_str(self)
                 } else {
-                    $as_count(*self).serialize(serializer)
+                    ($as_count)(*self).serialize(serializer)
                 }
             }
         }
     };
 }
 
-spelled!(
-    Timestamp,
-    TimestampVisitor,
-    "an RFC 3339 instant in UTC, as \"2026-09-16T07:45:35Z\"",
-    i64,
-    Timestamp::as_nanos,
-    |nanos| Ok(Timestamp::from_nanos(nanos)),
-);
-spelled!(
-    TaiTimestamp,
-    TaiTimestampVisitor,
-    "an RFC 3339 date and time in TAI, as \"2026-09-16T07:46:12 TAI\"",
-    i64,
-    TaiTimestamp::as_nanos,
-    |nanos| Ok(TaiTimestamp::from_nanos(nanos)),
-);
-spelled!(
-    Uptime,
-    UptimeVisitor,
-    "the span since the origin, as \"1m30s\"",
-    i64,
-    Uptime::as_nanos,
-    |nanos| Ok(Uptime::from_nanos(nanos)),
-);
-spelled!(
-    RawUptime,
-    RawUptimeVisitor,
-    "the span since the origin, as \"1m30s\"",
-    i64,
-    RawUptime::as_nanos,
-    |nanos| Ok(RawUptime::from_nanos(nanos)),
-);
-spelled!(
-    BootUptime,
-    BootUptimeVisitor,
-    "the span since boot, as \"1m30s\"",
-    i64,
-    BootUptime::as_nanos,
-    |nanos| Ok(BootUptime::from_nanos(nanos)),
-);
-spelled!(
-    Tickstamp,
-    TickstampVisitor,
-    "a count of ticks, as \"24 ticks\"",
-    i64,
-    Tickstamp::as_ticks,
-    |ticks| Ok(Tickstamp::from_ticks(ticks)),
-);
-spelled!(
-    Timedelta,
-    TimedeltaVisitor,
-    "a span, as \"1m30s\"",
-    i64,
-    Timedelta::as_nanos,
-    |nanos| Ok(Timedelta::from_nanos(nanos)),
-);
-spelled!(
-    Tickdelta,
-    TickdeltaVisitor,
-    "a count of ticks, as \"24 ticks\"",
-    i64,
-    Tickdelta::as_ticks,
-    |ticks| { Ok(Tickdelta::from_ticks(ticks)) },
-);
+spelled!(Timestamp, "an RFC 3339 instant in UTC, as \"2026-09-16T07:45:35Z\"");
+spelled!(TaiTimestamp, "an RFC 3339 date and time in TAI, as \"2026-09-16T07:46:12 TAI\"");
+spelled!(Uptime, "the span since the origin, as \"1m30s\"");
+spelled!(RawUptime, "the span since the origin, as \"1m30s\"");
+spelled!(BootUptime, "the span since boot, as \"1m30s\"");
+spelled!(Tickstamp, "a count of ticks, as \"24 ticks\"");
+spelled!(Timedelta, "a span, as \"1m30s\"");
+spelled!(Tickdelta, "a count of ticks, as \"24 ticks\"");
 // A zero count is refused as serde refuses one for a `NonZeroU64`.
 spelled!(
     TickRate,
-    TickRateVisitor,
     "a count of hertz above zero, as \"24000000 Hz\"",
     u64,
     TickRate::as_hertz,

@@ -3,12 +3,12 @@
 # `checked_*` twins there for a caller to whom overflow is a bug. Each type is named the three ways
 # clippy prints it: inside t2t-core, from t2t-core, and from the facade.
 arithmetic-side-effects-allowed = [
-    "tick::Tickstamp",
-    "t2t_core::Tickstamp",
-    "t2t::Tickstamp",
     "tick::Tickdelta",
     "t2t_core::Tickdelta",
     "t2t::Tickdelta",
+    "tick::Tickstamp",
+    "t2t_core::Tickstamp",
+    "t2t::Tickstamp",
     "timedelta::Timedelta",
     "t2t_core::Timedelta",
     "t2t::Timedelta",

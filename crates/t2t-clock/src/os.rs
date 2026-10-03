@@ -51,7 +51,7 @@ fn read(id: clockid_t) -> i64 {
 macro_rules! os_clock {
     ($(#[$attribute:meta])* $clock:ident, $reading:ident, $id:expr) => {
         $(#[$attribute])*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
         pub struct $clock;
 
         impl Clock for $clock {

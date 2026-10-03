@@ -25,7 +25,7 @@ use crate::spelling::{Count, read_count};
 ///
 /// let rate: TickRate = "24000000 Hz".parse()?;
 /// assert_eq!(Tickdelta::from_ticks(24).to_timedelta(rate), Timedelta::MICROSECOND, "at 24 MHz");
-/// assert_eq!(Timedelta::SECOND.to_ticks(rate), Tickdelta::from_ticks(24_000_000), "and back");
+/// assert_eq!(Timedelta::SECOND.to_tickdelta(rate), Tickdelta::from_ticks(24_000_000), "and back");
 /// # Ok::<(), t2t_core::ParseTickRateError>(())
 /// ```
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -193,14 +193,14 @@ mod tests {
     fn a_second_of_ticks_is_a_second(#[case] hertz: u64) {
         let second = Tickdelta::from_ticks(i64::try_from(hertz).expect("a rate below `i64::MAX`"));
         assert_eq!(second.to_timedelta(rate(hertz)), Timedelta::SECOND, "a second of ticks");
-        assert_eq!(Timedelta::SECOND.to_ticks(rate(hertz)), second, "and back, exactly");
+        assert_eq!(Timedelta::SECOND.to_tickdelta(rate(hertz)), second, "and back, exactly");
     }
 
     #[test]
     fn a_backwards_count_converts_backwards() {
         let span = Tickdelta::from_ticks(-24).to_timedelta(rate(24_000_000));
         assert_eq!(span, -Timedelta::MICROSECOND, "ticks to nanoseconds");
-        let ticks = (-Timedelta::MICROSECOND).to_ticks(rate(3_000_000_000));
+        let ticks = (-Timedelta::MICROSECOND).to_tickdelta(rate(3_000_000_000));
         assert_eq!(ticks, Tickdelta::from_ticks(-3_000), "and nanoseconds to ticks");
     }
 
@@ -208,7 +208,11 @@ mod tests {
     fn a_conversion_past_the_range_saturates() {
         assert_eq!(Tickdelta::MAX.to_timedelta(rate(1)), Timedelta::MAX, "forwards");
         assert_eq!(Tickdelta::MIN.to_timedelta(rate(1)), Timedelta::MIN, "backwards");
-        assert_eq!(Timedelta::MAX.to_ticks(rate(u64::MAX)), Tickdelta::MAX, "the other way about");
+        assert_eq!(
+            Timedelta::MAX.to_tickdelta(rate(u64::MAX)),
+            Tickdelta::MAX,
+            "the other way about"
+        );
     }
 
     #[test]
@@ -243,7 +247,7 @@ mod tests {
         ) {
             let rate = rate(hertz);
             let nanos = Tickdelta::from_ticks(count).to_timedelta(rate).as_nanos();
-            let ticks = Timedelta::from_nanos(count).to_ticks(rate).as_ticks();
+            let ticks = Timedelta::from_nanos(count).to_tickdelta(rate).as_ticks();
             for (actual, exact) in [
                 (nanos, exact(count, 1_000_000_000, hertz)),
                 (ticks, exact(count, hertz, 1_000_000_000)),

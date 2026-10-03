@@ -2,6 +2,7 @@
 
 use time::{Duration, OffsetDateTime};
 
+use crate::errors::narrow;
 use crate::{OutOfRangeError, Timedelta, Timestamp};
 
 /// Every timestamp, in UTC, since time's reach years -9999 to 9999.
@@ -18,9 +19,7 @@ impl TryFrom<OffsetDateTime> for Timestamp {
 
     #[inline]
     fn try_from(instant: OffsetDateTime) -> Result<Self, Self::Error> {
-        i64::try_from(instant.unix_timestamp_nanos())
-            .map(Self)
-            .map_err(|_past_the_range| OutOfRangeError)
+        narrow(instant.unix_timestamp_nanos()).map(Self)
     }
 }
 
@@ -38,9 +37,7 @@ impl TryFrom<Duration> for Timedelta {
 
     #[inline]
     fn try_from(duration: Duration) -> Result<Self, Self::Error> {
-        i64::try_from(duration.whole_nanoseconds())
-            .map(Self)
-            .map_err(|_past_the_range| OutOfRangeError)
+        narrow(duration.whole_nanoseconds()).map(Self)
     }
 }
 

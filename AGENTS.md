@@ -68,7 +68,7 @@ What a change here keeps, beyond what the checks hold it to.
 - A cfg that repeats is one alias in `t2t-clock/build.rs`, as `os_clocks` is.
 - A value's constructor and accessor name its unit: `from_nanos` and `as_nanos`,
   `from_ticks` and `as_ticks`, `from_hertz` and `as_hertz`; a conversion is
-  named for what it gives, `to_timedelta` and `to_ticks`.
+  named for what it gives, `to_timedelta` and `to_tickdelta`.
 - Every name is whole words, never a fragment such as `at`, `by` or `held`.
 - `t2t-core` never reaches the operating system: no `libc`, no `std` beyond its
   `std` feature's conversions.

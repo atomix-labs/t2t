@@ -2,6 +2,7 @@
 
 use jiff::{SignedDuration, Timestamp as JiffTimestamp};
 
+use crate::errors::narrow;
 use crate::{OutOfRangeError, Timedelta, Timestamp};
 
 /// Every timestamp, since jiff's reach years -9999 to 9999.
@@ -21,7 +22,7 @@ impl TryFrom<JiffTimestamp> for Timestamp {
 
     #[inline]
     fn try_from(instant: JiffTimestamp) -> Result<Self, Self::Error> {
-        i64::try_from(instant.as_nanosecond()).map(Self).map_err(|_past_the_range| OutOfRangeError)
+        narrow(instant.as_nanosecond()).map(Self)
     }
 }
 
@@ -39,7 +40,7 @@ impl TryFrom<SignedDuration> for Timedelta {
 
     #[inline]
     fn try_from(duration: SignedDuration) -> Result<Self, Self::Error> {
-        i64::try_from(duration.as_nanos()).map(Self).map_err(|_past_the_range| OutOfRangeError)
+        narrow(duration.as_nanos()).map(Self)
     }
 }
 

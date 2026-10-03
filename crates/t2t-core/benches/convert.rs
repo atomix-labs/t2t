@@ -61,7 +61,7 @@ fn timedelta_to_ticks(bencher: Bencher<'_, '_>) {
     bencher.counter(ItemsCount::new(COUNT)).bench_local(|| {
         black_box(&spans)
             .iter()
-            .map(|&span| span.to_ticks(RATE).as_ticks())
+            .map(|&span| span.to_tickdelta(RATE).as_ticks())
             .fold(0, i64::wrapping_add)
     });
 }

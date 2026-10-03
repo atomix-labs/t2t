@@ -11,11 +11,8 @@ use crate::{
 
 /// The pattern of a span's spelling: `0`, or counts with units, each at most once and coarsest
 /// first, behind a lookahead for a count.
-macro_rules! span_pattern {
-    () => {
-        "^(0|-?(?=[0-9])([0-9]+d)?([0-9]+h)?([0-9]+m)?([0-9]+s)?([0-9]+ms)?([0-9]+us)?([0-9]+ns)?)$"
-    };
-}
+const SPAN_PATTERN: &str =
+    "^(0|-?(?=[0-9])([0-9]+d)?([0-9]+h)?([0-9]+m)?([0-9]+s)?([0-9]+ms)?([0-9]+us)?([0-9]+ns)?)$";
 
 /// The pattern of RFC 3339's date and time, a fraction of one to nine digits or none, then `$zone`.
 macro_rules! date_time_pattern {
@@ -29,11 +26,7 @@ macro_rules! date_time_pattern {
 }
 
 /// The pattern of a count of ticks: an integer, then ` ticks`.
-macro_rules! ticks_pattern {
-    () => {
-        "^-?[0-9]+ ticks$"
-    };
-}
+const TICKS_PATTERN: &str = "^-?[0-9]+ ticks$";
 
 /// The schema of a `$type` written as its spelling: a string, described and patterned.
 macro_rules! spelled_schema {
@@ -70,28 +63,24 @@ spelled_schema!(
     "An RFC 3339 date and time in TAI, with a fraction of one to nine digits or none, as \"2026-09-16T07:46:12 TAI\".",
     date_time_pattern!(" TAI"),
 );
-spelled_schema!(
-    Uptime,
-    "The span since the monotonic clock's origin, as \"1m30s\".",
-    span_pattern!(),
-);
+spelled_schema!(Uptime, "The span since the monotonic clock's origin, as \"1m30s\".", SPAN_PATTERN);
 spelled_schema!(
     RawUptime,
     "The span since the raw monotonic clock's origin, as \"1m30s\".",
-    span_pattern!(),
+    SPAN_PATTERN,
 );
-spelled_schema!(BootUptime, "The span since boot, as \"1m30s\".", span_pattern!());
+spelled_schema!(BootUptime, "The span since boot, as \"1m30s\".", SPAN_PATTERN);
 spelled_schema!(
     Tickstamp,
     "A counter's reading, a count of ticks, as \"24 ticks\".",
-    ticks_pattern!()
+    TICKS_PATTERN
 );
 spelled_schema!(
     Timedelta,
     "A signed span: \"0\", or counts with units, each at most once and coarsest first, of d, h, m, s, ms, us, ns, as \"1m30s\".",
-    span_pattern!(),
+    SPAN_PATTERN,
 );
-spelled_schema!(Tickdelta, "A signed count of ticks, as \"24 ticks\".", ticks_pattern!());
+spelled_schema!(Tickdelta, "A signed count of ticks, as \"24 ticks\".", TICKS_PATTERN);
 spelled_schema!(
     TickRate,
     "A counter's rate, a count of hertz above zero, as \"24000000 Hz\".",
