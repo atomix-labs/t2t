@@ -844,7 +844,7 @@ dependencies = [
 
 [[package]]
 name = "t2t"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "t2t-clock",
  "t2t-core",
@@ -852,7 +852,7 @@ dependencies = [
 
 [[package]]
 name = "t2t-clock"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cfg_aliases",
  "derive_more",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "t2t-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "arrayvec",
  "chrono",
