@@ -14,7 +14,7 @@
 #   features = ["docs"]
 
 [sources]
-atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.18.1" }
+atxp = { git = "https://github.com/atomix-labs/atxp", tag = "v0.19.0" }
 
 [[layers]]
 profile = "atxp/rust"
@@ -25,3 +25,7 @@ profile = "atxp/vscode"
 
 [[layers]]
 profile = "atxp/rust-msrv"
+
+[[layers]]
+profile = "atxp/project"
+features = ["devset-badge"]

@@ -9,6 +9,7 @@ rust-version = "1.98"
 license      = "MIT OR Apache-2.0"
 authors      = ["Atomix Labs"]
 repository   = "https://github.com/atomix-labs/t2t"
+homepage     = "https://atomix-labs.github.io/t2t/"
 
 [workspace.dependencies]
 # external

@@ -37,6 +37,36 @@ description = "Moves a pinned tool, action or crate"
 color       = "ededed"
 description = "Opened by a workflow"
 
+[labels."area: core"]
+color       = "1d76db"
+description = "t2t-core: the values, their spellings and conversions"
+paths       = ["crates/t2t-core/**"]
+
+[labels."area: clock"]
+color       = "5319e7"
+description = "t2t-clock: the OS clocks, the counter and the manual clocks"
+paths       = ["crates/t2t-clock/**"]
+
+[labels."area: facade"]
+color       = "0e8a16"
+description = "t2t: the facade's re-exports and its examples"
+paths       = ["crates/t2t/**"]
+
+[labels."area: docs"]
+color       = "c5def5"
+description = "The book, the READMEs and the guides"
+paths       = ["docs/**", "*.md", "crates/*/README.md"]
+
+[labels."area: ci"]
+color       = "bfd4f2"
+description = "The workflows and their configuration"
+paths       = [".github/**"]
+
+[labels."area: performance"]
+color       = "f9d0c4"
+description = "The benchmarks and their committed runs"
+paths       = ["crates/*/benches/**"]
+
 # GitHub's first labels: types say the kind, Discussions take questions, and closing says duplicate
 # or not planned.
 [retired]

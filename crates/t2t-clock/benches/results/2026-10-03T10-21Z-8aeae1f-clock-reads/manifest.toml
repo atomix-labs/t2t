@@ -1,0 +1,37 @@
+run-id  = "2026-10-03T10-21Z-8aeae1f-clock-reads"
+purpose = "what one reading of each clock costs: the OS clocks through clock_gettime, and the CPU's counter"
+
+[hardware]
+cpu        = "AWS Graviton4 (Arm Neoverse V2), c8g.8xlarge"
+cores      = 32
+cache-line = 64
+
+[environment]
+kernel        = "Linux 6.12.53-69.119.amzn2023.aarch64"
+clocksource   = "arch_sys_counter"
+counter-rate  = "1000000000 Hz, from cntfrq_el0"
+isolated-cpus = "6-31"
+placement     = "taskset -c 10"
+
+[toolchain]
+rustc   = "1.101.0-nightly (d080e7dff 2026-09-27)"
+profile = "bench: release's settings, fat LTO, one codegen unit, built to unwind"
+flags   = "the workspace's floor, +crc"
+
+[parameters]
+command = "taskset -c 10 cargo bench -p t2t-clock --features std --bench read, built first with --no-run"
+threads = "1, 2, 4 and 8, every thread on core 10, so the counts share one core and show no contention between cores"
+timer   = "divan's, 29 to 30 ns precise, each sample a batch of reads, so a read below the timer's precision is still timed"
+samples = 100
+
+[results.median-ns-per-read]
+counter                = { t1 = [11.82, 11.82], t2 = [11.82, 11.82], t4 = [11.82, 11.82], t8 = [11.82, 11.82] }
+system-clock           = { t1 = [33.21, 33.19], t2 = [33.91, 33.92], t4 = [33.93, 33.92], t8 = [33.93, 33.93] }
+coarse-system-clock    = { t1 = [9.849, 9.836], t2 = [9.838, 9.843], t4 = [9.851, 9.845], t8 = [9.854, 9.85] }
+tai-clock              = { t1 = [33.19, 33.19], t2 = [33.93, 33.21], t4 = [33.93, 33.21], t8 = [33.93, 33.21] }
+monotonic-clock        = { t1 = [33.18, 33.18], t2 = [33.91, 33.21], t4 = [33.92, 33.21], t8 = [33.93, 33.21] }
+coarse-monotonic-clock = { t1 = [9.897, 9.891], t2 = [9.848, 9.849], t4 = [9.853, 9.85], t8 = [9.851, 9.851] }
+raw-monotonic-clock    = { t1 = [33.16, 33.16], t2 = [33.93, 33.21], t4 = [33.93, 33.22], t8 = [33.93, 33.22] }
+boot-clock             = { t1 = [33.19, 33.19], t2 = [33.93, 33.21], t4 = [33.93, 33.21], t8 = [33.93, 33.21] }
+process-cpu-clock      = { t1 = [394.2, 387.7], t2 = [396.9, 390.9], t4 = [397.1, 392.9], t8 = [400.1, 393.0] }
+thread-cpu-clock       = { t1 = [272.8, 269.3], t2 = [272.7, 272.9], t4 = [267.7, 266.6], t8 = [265.3, 265.9] }
