@@ -7,9 +7,20 @@ rust-version.workspace = true
 license.workspace      = true
 authors.workspace      = true
 repository.workspace   = true
+homepage.workspace     = true
+keywords               = ["clock", "monotonic", "tsc", "rdtsc", "no-std"]
+categories             = ["date-and-time", "hardware-support", "os", "no-std"]
+exclude                = ["benches/results/"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+]
 
 [package.metadata.cargo-shear]
 ignored-paths = ["tests/compile_fail/*.rs"]
