@@ -45,3 +45,7 @@ no-css = true
 unstable-features = true
 base-url          = "/api"
 fail-on-warnings  = "always"
+
+# The API with every feature on, as docs.rs builds it, so a page links what `std` or `serde` adds.
+[preprocessor.rustdoc-links.build-options]
+all-features = true
