@@ -23,8 +23,8 @@
 //!
 //! # Choosing a Clock
 //!
-//! - **Stamp a capture with `SystemClock`.** Its reading names a moment a venue and a peer machine
-//!   name too. It may step backwards across a correction.
+//! - **Stamp a capture with `SystemClock`.** Its reading names a moment another machine names too.
+//!   It may step backwards across a correction.
 //! - **Wait on `MonotonicClock`.** It never steps, so a deadline is `MonotonicClock.now() +
 //!   timeout`.
 //! - **Measure with [`Counter`](clock::Counter).** One instruction that touches no memory, and one
@@ -42,10 +42,10 @@
 //! use t2t::{Timed, Timedelta, Timestamp};
 //!
 //! let clock = ManualClock::new(Timestamp::from_secs(1_700_000_000));
-//! let quote = Timed::new(clock.now(), 101_u64);
+//! let sample = Timed::new(clock.now(), 101_u64);
 //!
 //! clock.advance(Timedelta::from_millis(1_500));
-//! assert!(quote.elapsed(clock.now()) > Timedelta::SECOND, "stale a second and a half on");
+//! assert!(sample.elapsed(clock.now()) > Timedelta::SECOND, "stale a second and a half on");
 //! ```
 //!
 //! # Crate Features

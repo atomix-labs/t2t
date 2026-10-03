@@ -63,14 +63,14 @@ fn an_operator_saturates_and_its_checked_twin_refuses() {
 fn floor_and_ceil_find_the_bucket_a_point_falls_in() {
     use t2t::{Timedelta, Timestamp};
 
-    let trade: Timestamp = "2026-09-16T07:45:35.123Z".parse().expect("an instant in UTC");
-    let start = trade.floor(Timedelta::MINUTE);
-    let end = trade.ceil(Timedelta::MINUTE);
+    let event: Timestamp = "2026-09-16T07:45:35.123Z".parse().expect("an instant in UTC");
+    let start = event.floor(Timedelta::MINUTE);
+    let end = event.ceil(Timedelta::MINUTE);
 
     assert_eq!(format!("{start:.0}"), "2026-09-16T07:45:00Z", "the minute it falls in");
     assert_eq!(format!("{end:.0}"), "2026-09-16T07:46:00Z", "and the next");
     assert_eq!(start.floor(Timedelta::MINUTE), start, "a multiple stays where it is");
-    assert_eq!(trade.floor(Timedelta::ZERO), trade, "and a zero unit leaves the point");
+    assert_eq!(event.floor(Timedelta::ZERO), event, "and a zero unit leaves the point");
 
     let budget = Timedelta::from_micros(1_250);
     assert_eq!(budget.ceil(Timedelta::MILLISECOND), Timedelta::from_millis(2), "a span too");

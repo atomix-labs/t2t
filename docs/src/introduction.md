@@ -6,11 +6,10 @@ type of its own, so a reading of the wall clock is never subtracted from a
 reading of the monotonic clock: the compiler refuses it.
 
 It is for any program that needs time values or clocks: a server's deadlines, a
-log's stamps, a benchmark's spans, a test that moves time by hand. It is no
-trading library, though it is built for code where a nanosecond counts: every
-point and span is one `i64`, the CPU's counter is read in one instruction, and
-no conversion on a reading's or a spelling's path divides by a number known only
-at run time.
+log's stamps, a benchmark's spans, a test that moves time by hand. It is built
+for code where a nanosecond counts: every point and span is one `i64`, the CPU's
+counter is read in one instruction, and no conversion on a reading's or a
+spelling's path divides by a number known only at run time.
 
 ## What It Holds
 

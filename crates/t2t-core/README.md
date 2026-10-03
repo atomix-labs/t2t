@@ -23,9 +23,9 @@ use t2t_core::{ParseTimedeltaError, Timed, Timedelta, Timestamp};
 fn main() -> Result<(), ParseTimedeltaError> {
     let stale: Timedelta = "1s".parse()?;
     let captured = Timestamp::from_secs(1_700_000_000);
-    let quote = Timed::new(captured, 101_u64);
+    let sample = Timed::new(captured, 101_u64);
 
-    assert!(quote.elapsed(captured + Timedelta::from_millis(1_500)) > stale, "stale by now");
+    assert!(sample.elapsed(captured + Timedelta::from_millis(1_500)) > stale, "stale by now");
     Ok(())
 }
 ```

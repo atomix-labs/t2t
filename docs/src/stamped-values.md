@@ -3,7 +3,7 @@
 [`Timed<T, S>`][t2t::Timed] holds a value `T` and the stamp `S` its writer
 captured it with, a `Timestamp` unless a stamp of another timeline is named. It
 says how old the value is at any later point, and reaches the value through
-`Deref`, so a stamped quote's fields read as the quote's own.
+`Deref`, so a stamped sample's fields read as the sample's own.
 
 ```rs
 {{#include ../../crates/t2t/tests/book/stamped_values.rs:timed}}

@@ -20,7 +20,7 @@ use t2t::clock::{
     ProcessCpuClock, RawMonotonicClock, SystemClock, ThreadCpuClock,
 };
 
-/// The readings taken back to back to price one.
+/// The readings taken back to back to time one.
 const READINGS: i64 = 100_000;
 
 fn main() -> ExitCode {
