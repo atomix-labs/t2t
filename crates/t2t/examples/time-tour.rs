@@ -8,13 +8,13 @@
 
 use t2t::{TickRate, Tickdelta, Tickstamp, Timed, Timedelta, Timestamp};
 
-/// The best prices on a book, worth stamping.
+/// What a weather station measured, worth stamping.
 #[derive(Debug, Clone, Copy)]
-struct Quote {
-    /// The best bid, in the instrument's price ticks.
-    bid: u64,
-    /// The best offer, in the same.
-    ask: u64,
+struct Weather {
+    /// The temperature, in degrees Celsius.
+    celsius: i16,
+    /// The relative humidity, in percent.
+    humidity: u8,
 }
 
 fn main() {
@@ -40,9 +40,14 @@ fn main() {
     println!("its minute         {minute:.0} to {:.0}", minute + Timedelta::MINUTE);
 
     // A value carries the stamp its writer captured it with, and says how old it is.
-    let quote = Timed::new(captured, Quote { bid: 100, ask: 101 });
-    let age = quote.elapsed(captured + Timedelta::from_millis(1_500));
-    println!("quote              {} / {}, {age} old, stale: {}", quote.bid, quote.ask, age > stale);
+    let sample = Timed::new(captured, Weather { celsius: 21, humidity: 40 });
+    let age = sample.elapsed(captured + Timedelta::from_millis(1_500));
+    println!(
+        "sample             {} °C, {}%, {age} old, stale: {}",
+        sample.celsius,
+        sample.humidity,
+        age > stale
+    );
 
     // A counter's ticks mean nothing until a rate says what one is worth.
     let start = Tickstamp::from_ticks(1_000_000);

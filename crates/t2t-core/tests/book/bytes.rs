@@ -16,8 +16,8 @@ fn a_value_is_read_from_bytes_and_a_point_written_to_them() {
     let mut record = [0_u8; 16];
     record[..8].copy_from_slice(bytes);
     record[8..].copy_from_slice(&101_u64.to_ne_bytes());
-    let quote = Timed::<u64>::read_from_bytes(&record).expect("sixteen bytes");
-    assert_eq!((quote.stamp, quote.value), (instant, 101), "a stamped word");
+    let sample = Timed::<u64>::read_from_bytes(&record).expect("sixteen bytes");
+    assert_eq!((sample.stamp, sample.value), (instant, 101), "a stamped word");
 
     // Any bytes make a date and time, so one read from them is checked before it is used.
     let date_time = UtcDateTime::read_from_bytes(&[0xFF; 16]).expect("sixteen bytes");

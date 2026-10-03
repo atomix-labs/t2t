@@ -6,16 +6,16 @@ fn code_generic_over_its_clock_is_tested_on_a_manual_one() {
     use t2t::clock::{Clock, ManualClock};
     use t2t::{Timed, Timedelta, Timestamp};
 
-    /// Whether `quote` is older than a second by `clock`: `SystemClock` in production.
-    fn is_stale<C: Clock<Reading = Timestamp>>(clock: &C, quote: Timed<u64>) -> bool {
-        quote.elapsed(clock.now()) > Timedelta::SECOND
+    /// Whether `sample` is older than a second by `clock`: `SystemClock` in production.
+    fn is_stale<C: Clock<Reading = Timestamp>>(clock: &C, sample: Timed<u64>) -> bool {
+        sample.elapsed(clock.now()) > Timedelta::SECOND
     }
 
     let clock = ManualClock::new(Timestamp::from_secs(1_700_000_000));
-    let quote = Timed::new(clock.now(), 101);
-    assert!(!is_stale(&clock, quote), "fresh when captured");
+    let sample = Timed::new(clock.now(), 101);
+    assert!(!is_stale(&clock, sample), "fresh when captured");
     clock.advance(Timedelta::from_millis(1_500));
-    assert!(is_stale(&clock, quote), "stale a second and a half on");
+    assert!(is_stale(&clock, sample), "stale a second and a half on");
 }
 // ANCHOR_END: generic
 

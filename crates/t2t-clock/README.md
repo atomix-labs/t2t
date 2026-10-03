@@ -22,7 +22,7 @@ without it.
 use t2t_clock::{Clock, ManualClock};
 use t2t_core::{Timedelta, Timestamp};
 
-/// Whether the quote stamped at `stamp` is older than a second.
+/// Whether the sample stamped at `stamp` is older than a second.
 fn is_stale<C: Clock<Reading = Timestamp>>(clock: &C, stamp: Timestamp) -> bool {
     clock.now() - stamp > Timedelta::SECOND
 }

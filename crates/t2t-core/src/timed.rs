@@ -17,11 +17,11 @@ use crate::{TimePoint, Timestamp};
 /// use t2t_core::{Timed, Timedelta, Timestamp};
 ///
 /// let captured = Timestamp::from_secs(1_700_000_000);
-/// let quote = Timed::new(captured, 101_u64);
+/// let sample = Timed::new(captured, 101_u64);
 ///
-/// assert_eq!(*quote, 101, "the value, through `Deref`");
+/// assert_eq!(*sample, 101, "the value, through `Deref`");
 /// let now = captured + Timedelta::from_millis(5);
-/// assert_eq!(quote.elapsed(now), Timedelta::from_millis(5), "its age");
+/// assert_eq!(sample.elapsed(now), Timedelta::from_millis(5), "its age");
 /// ```
 #[repr(C)]
 #[derive(

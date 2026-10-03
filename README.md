@@ -52,10 +52,10 @@ use t2t::{Timed, Timedelta, Timestamp};
 
 fn main() {
     let clock = ManualClock::new(Timestamp::from_secs(1_700_000_000));
-    let quote = Timed::new(clock.now(), 101_u64);
+    let sample = Timed::new(clock.now(), 101_u64);
 
     clock.advance(Timedelta::from_millis(1_500));
-    assert!(quote.elapsed(clock.now()) > Timedelta::SECOND, "stale a second and a half on");
+    assert!(sample.elapsed(clock.now()) > Timedelta::SECOND, "stale a second and a half on");
 }
 ```
 

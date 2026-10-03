@@ -120,9 +120,9 @@ the list.
 ## Floor and Ceil
 
 `floor` and `ceil` take a point or a span to the nearest multiple of a unit at
-or below it, or at or above it: the minute a trade falls in, or the bar it
-closes. They work on both sides of the origin, take the unit's magnitude, and
-leave the value as it is for a zero unit.
+or below it, or at or above it: the minute an event falls in, or the end of the
+bucket a histogram counts it in. They work on both sides of the origin, take the
+unit's magnitude, and leave the value as it is for a zero unit.
 
 ```rs
 {{#include ../../crates/t2t/tests/book/points_and_spans.rs:floor}}

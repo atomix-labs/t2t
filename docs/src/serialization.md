@@ -40,8 +40,8 @@ kinds of format:
 
 ## Counts in a Named Unit
 
-A feed or a peer that sends a count names its unit at the field, and the field's
-`#[serde(with = …)]` names the module:
+A service or a peer that sends a count names its unit at the field, and the
+field's `#[serde(with = …)]` names the module:
 
 | Module                                                                        | Reads and writes                 |
 | ----------------------------------------------------------------------------- | -------------------------------- |

@@ -49,27 +49,27 @@ fn a_count_in_a_named_unit_takes_a_module() {
     use t2t_core::serde::{timedelta, timestamp};
     use t2t_core::{Timedelta, Timestamp};
 
-    /// An order, as a venue's feed sends it.
+    /// A job, as a peer's API sends it.
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
-    struct Order {
-        /// When the venue took it, in milliseconds since the epoch.
+    struct Job {
+        /// When the peer received it, in milliseconds since the epoch.
         #[serde(with = "timestamp::millis")]
-        accepted: Timestamp,
-        /// When the venue matched it, in nanoseconds since the epoch.
+        received: Timestamp,
+        /// When the peer started it, in nanoseconds since the epoch.
         #[serde(with = "timestamp::nanos")]
-        matched: Timestamp,
-        /// How long it rests, in seconds, where it lapses at all.
+        started: Timestamp,
+        /// How long it may run, in seconds, where it has a limit at all.
         #[serde(with = "timedelta::secs::option")]
-        lifetime: Option<Timedelta>,
+        timeout: Option<Timedelta>,
     }
 
-    let feed = r#"{"accepted":1789544735123,"matched":"1789544735123456789","lifetime":"30"}"#;
-    let order: Order = from_str(feed).expect("an order");
-    assert_eq!(order.accepted, Timestamp::from_millis(1_789_544_735_123), "a number");
-    assert_eq!(order.lifetime, Some(Timedelta::from_secs(30)), "or a decimal string");
+    let sent = r#"{"received":1789544735123,"started":"1789544735123456789","timeout":"30"}"#;
+    let job: Job = from_str(sent).expect("a job");
+    assert_eq!(job.received, Timestamp::from_millis(1_789_544_735_123), "a number");
+    assert_eq!(job.timeout, Some(Timedelta::from_secs(30)), "or a decimal string");
 
-    let written = to_string(&order).expect("each field serializes as a number or a string");
-    let expected = r#"{"accepted":1789544735123,"matched":"1789544735123456789","lifetime":30}"#;
+    let written = to_string(&job).expect("each field serializes as a number or a string");
+    let expected = r#"{"received":1789544735123,"started":"1789544735123456789","timeout":30}"#;
     assert_eq!(written, expected, "nanoseconds since the epoch in a string, the rest as numbers");
 }
 // ANCHOR_END: units
