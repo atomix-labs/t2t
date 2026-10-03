@@ -348,7 +348,7 @@ tag = "v0.18.1"
 [[profiles]]
 name = "mdbook"
 rev = "ddb123c80fdb5f23d0f7d8afc271fc7942d21194"
-digest = "1f80cb573dcebe8cf5cfcd4ffe4f35ac5aea72a4252d870cd54a8c59de1b9eba"
+digest = "fedf0ac6cf262323afa8fa109a1d3a80b23d29ba410b3a902d3cb61bb68f5fa9"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -364,7 +364,7 @@ pages = ["default"]
 [[profiles]]
 name = "project"
 rev = "ddb123c80fdb5f23d0f7d8afc271fc7942d21194"
-digest = "d4ea9e94e1c9da7632830164ccfcb4372a3d53bd2c2f511e7e3e94533def6a8b"
+digest = "56038f52d4a84ff847b3758f8135c9a76b623cc937e70fdc7b177bf1ef2c93ad"
 
 [profiles.source]
 git = "https://github.com/atomix-labs/atxp"
@@ -375,6 +375,7 @@ agents = ["rust/agents"]
 breaking-changes = ["default"]
 conduct = ["rust/oss"]
 contributing = ["default"]
+devset-badge = ["target"]
 license = ["default"]
 readme = ["default"]
 security = ["default"]
