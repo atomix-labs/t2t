@@ -21,12 +21,16 @@ deny = [
     { name = "variantly", reason = "unmaintained; superseded by derive_more::IsVariant / TryUnwrap" },
     { name = "enum-as-inner", reason = "superseded by derive_more::TryUnwrap (with ref / ref_mut)" },
     { name = "derive-getters", reason = "use getset / gset (active + slice-deref support)" },
-    { name = "derive_setters", reason = "use bon for build flows; fragments call sites otherwise" },
+    { name = "derive_setters", reason = "write a spec's setters by hand, const fns where the field allows; use bon for a builder of steps" },
     { name = "field_access", reason = "runtime reflection; wrong shape for HFT" },
     { name = "amplify_derive", reason = "use derive_more (smaller dependency tree)" },
     { name = "delegate-attr", reason = "use delegate (broader adoption, same surface)" },
     { name = "async-trait", reason = "no async on the trade path" },
     { name = "nix", reason = "use rustix (I/O-safe types, raw Linux syscalls); libc covers the rustix gap" },
+]
+
+skip = [
+    { crate = "syn@2", reason = "derive_more, and zerocopy behind `zerocopy`, are still on syn 2; ref-cast, which schemars brings behind `schemars`, is on syn 3" },
 ]
 
 [licenses]
@@ -49,3 +53,6 @@ unused-allowed-license = "allow"
 unknown-git       = "deny"
 unknown-registry  = "deny"
 required-git-spec = "rev"
+
+[graph]
+all-features = true
