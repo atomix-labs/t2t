@@ -63,9 +63,13 @@ What a change here keeps, beyond what the checks hold it to.
   is written by hand only where nothing fits or what fits measured slower, and
   says so where it stands.
 - Imports, never paths: a feature's derive comes in through a gated import,
-  `#[cfg(feature = "zerocopy")] use zerocopy::{…};`, and neither a body nor an
-  attribute names `core::`, `crate::` or another crate's path. A doc link may.
+  `#[cfg(feature = "zerocopy-08")] use zerocopy::{…};`, and no body or attribute
+  names `core::`, `crate::` or another crate's path; a doc link may.
 - A cfg that repeats is one alias in `t2t-clock/build.rs`, as `os_clocks` is.
+- A feature that brings a crate before 1.0 names its version, `chrono-04` and
+  `zerocopy-08`, so the crate's next 0.y can come beside it without a breaking
+  release; one that brings a crate at 1.0 or later is the crate's name, `serde`
+  and `schemars`.
 - A value's constructor and accessor name its unit: `from_nanos` and `as_nanos`,
   `from_ticks` and `as_ticks`, `from_hertz` and `as_hertz`; a conversion is
   named for what it gives, `to_timedelta` and `to_tickdelta`.

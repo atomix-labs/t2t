@@ -4,7 +4,7 @@ use core::num::NonZeroU64;
 use core::str::FromStr;
 
 use derive_more::{Debug, Display};
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{Immutable, KnownLayout};
 
 use crate::ParseTickRateError;
@@ -31,7 +31,7 @@ use crate::spelling::{Count, read_count};
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[display("{}", Count(hertz.get(), " Hz"))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(Immutable, KnownLayout))]
 pub struct TickRate {
     /// Ticks a second.
     hertz: NonZeroU64,
@@ -95,7 +95,7 @@ impl FromStr for TickRate {
 /// The factor is rounded up, so an exact multiple converts exactly, and any other count to within
 /// one unit of its exact quotient.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "zerocopy", derive(Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(Immutable, KnownLayout))]
 struct Scale {
     /// The ratio times two to the `shift`, rounded up.
     factor: u64,

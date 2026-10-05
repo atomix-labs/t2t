@@ -47,15 +47,15 @@
 //! None is on by default, and nothing reaches the operating system unless `std` is named; what
 //! `std` adds is on 64-bit Linux and macOS.
 //!
-//! | Feature     | Adds                                                                       |
-//! | ----------- | -------------------------------------------------------------------------- |
-//! | `std`       | `SystemTime` conversions                                                   |
-//! | `serde`     | every value's spelling, and the `serde` modules for counts in a named unit |
-//! | `schemars`  | `JsonSchema` for every value with a spelling; turns `serde` on             |
-//! | `zerocopy`  | the zerocopy traits each type can honour, native-endian                    |
-//! | `chrono-04` | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`            |
-//! | `jiff-02`   | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`        |
-//! | `time-03`   | conversions to and from time 0.3's `OffsetDateTime` and `Duration`         |
+//! | Feature       | Adds                                                                       |
+//! | ------------- | -------------------------------------------------------------------------- |
+//! | `std`         | `SystemTime` conversions                                                   |
+//! | `serde`       | every value's spelling, and the `serde` modules for counts in a named unit |
+//! | `schemars`    | `JsonSchema` for every value with a spelling; turns `serde` on             |
+//! | `zerocopy-08` | the zerocopy traits each type can honour, native-endian                    |
+//! | `chrono-04`   | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`            |
+//! | `jiff-02`     | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`        |
+//! | `time-03`     | conversions to and from time 0.3's `OffsetDateTime` and `Duration`         |
 
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]

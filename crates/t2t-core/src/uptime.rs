@@ -3,7 +3,7 @@
 use core::str::FromStr;
 
 use derive_more::{Debug, Display};
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 use crate::{ParseTimedeltaError, Timedelta};
@@ -29,7 +29,7 @@ use crate::{ParseTimedeltaError, Timedelta};
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[display("{}", Timedelta(*_0))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct Uptime(pub(crate) i64);
 
 /// A point on the monotonic clock at the hardware's own rate, in nanoseconds since an origin
@@ -50,7 +50,7 @@ pub struct Uptime(pub(crate) i64);
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[display("{}", Timedelta(*_0))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct RawUptime(pub(crate) i64);
 
 /// A point on the boot clock, in nanoseconds since boot, the machine's suspensions counted.
@@ -69,7 +69,7 @@ pub struct RawUptime(pub(crate) i64);
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[display("{}", Timedelta(*_0))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct BootUptime(pub(crate) i64);
 
 /// Reading a point counted from boot from the span since its origin.

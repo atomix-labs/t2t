@@ -50,7 +50,7 @@ jobs:
           for target in aarch64-unknown-none x86_64-unknown-none; do
             cargo build --locked --package t2t-core --package t2t-clock --package t2t --target "$target"
             cargo build --locked --package t2t --target "$target" \
-              --features chrono-04,jiff-02,schemars,serde,time-03,zerocopy
+              --features chrono-04,jiff-02,schemars,serde,time-03,zerocopy-08
           done
 
   linux-32-bit:

@@ -40,7 +40,7 @@ and the value decides only between equal stamps.
 
 A `Timed` is `#[repr(C)]`: the stamp at offset zero, then the value. A
 `Timed<u64>` is 16 bytes, with no padding, on any timeline, since every stamp is
-an `i64`. With `zerocopy`, a `Timed` is read from bytes, as
+an `i64`. With `zerocopy-08`, a `Timed` is read from bytes, as
 [Serialization](serialization.md#bytes) shows.
 
 ```rs

@@ -3,8 +3,8 @@
 With the `serde` feature, every value serializes as its spelling where a person
 reads the format, and as its count where none does. The modules under
 [`t2t::serde`] read and write a count in a named unit, for a field that holds
-one. The `schemars` feature adds each spelling's JSON Schema, and the `zerocopy`
-feature reads and writes values as bytes.
+one. The `schemars` feature adds each spelling's JSON Schema, and the
+`zerocopy-08` feature reads and writes values as bytes.
 
 This chapter's listings are t2t-core's tests, since they depend on `serde_json`,
 `serde_test` and the other crates' types; they name the crate `t2t_core`, and
@@ -88,8 +88,9 @@ on it cannot use the pattern.
 
 ## Bytes
 
-With `zerocopy`, each type derives the zerocopy traits it can honour. A type's
-bytes are native-endian, and with the feature on, its layout is part of its API.
+With `zerocopy-08`, each type derives the zerocopy traits it can honour. A
+type's bytes are native-endian, and with the feature on, its layout is part of
+its API.
 
 | Type                                  | Traits                                               | Left out, and why                                                                                                                                        |
 | ------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -1,6 +1,6 @@
 //! A point on the wall clock as a date and a time of day.
 
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{FromBytes, Immutable, KnownLayout};
 
 use crate::Timestamp;
@@ -53,7 +53,7 @@ const DAY_SHIFT: i64 = EPOCH_DAY + DAYS_PER_CYCLE * CYCLE_SHIFT;
 /// ```
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, Immutable, KnownLayout))]
 pub struct UtcDateTime {
     /// The year.
     pub year: i32,

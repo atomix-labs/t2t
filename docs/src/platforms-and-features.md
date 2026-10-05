@@ -33,7 +33,7 @@ conversions, and turns on its dependencies' own `std`. The `schemars` feature
 needs `alloc`, for the schemas it builds. CI builds all three crates for
 `aarch64-unknown-none` and `x86_64-unknown-none` with no feature, and the facade
 there with every feature that needs no `std`: `chrono-04`, `jiff-02`,
-`schemars`, `serde`, `time-03` and `zerocopy`.
+`schemars`, `serde`, `time-03` and `zerocopy-08`.
 
 ## 32-Bit Linux
 
@@ -47,15 +47,15 @@ every feature on both.
 None is on by default, and nothing reaches the operating system unless `std` is
 named; what `std` adds is on 64-bit Linux and macOS.
 
-| Feature     | Adds                                                                         |
-| ----------- | ---------------------------------------------------------------------------- |
-| `std`       | the OS clocks, an `x86_64` counter's measured rate, `SystemTime` conversions |
-| `serde`     | every value's spelling, and the `serde` modules for counts in a named unit   |
-| `schemars`  | `JsonSchema` for every value with a spelling; turns `serde` on               |
-| `zerocopy`  | the zerocopy traits each type can honour, native-endian                      |
-| `chrono-04` | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`              |
-| `jiff-02`   | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
-| `time-03`   | conversions to and from time 0.3's `OffsetDateTime` and `Duration`           |
+| Feature       | Adds                                                                         |
+| ------------- | ---------------------------------------------------------------------------- |
+| `std`         | the OS clocks, an `x86_64` counter's measured rate, `SystemTime` conversions |
+| `serde`       | every value's spelling, and the `serde` modules for counts in a named unit   |
+| `schemars`    | `JsonSchema` for every value with a spelling; turns `serde` on               |
+| `zerocopy-08` | the zerocopy traits each type can honour, native-endian                      |
+| `chrono-04`   | conversions to and from chrono 0.4's `DateTime` and `TimeDelta`              |
+| `jiff-02`     | conversions to and from jiff 0.2's `Timestamp` and `SignedDuration`          |
+| `time-03`     | conversions to and from time 0.3's `OffsetDateTime` and `Duration`           |
 
 That is the facade's table. t2t-core has every feature but its `std` adds the
 `SystemTime` conversions alone, and t2t-clock has `std` alone, which adds the OS
