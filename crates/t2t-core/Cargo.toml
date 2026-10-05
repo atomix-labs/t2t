@@ -39,7 +39,7 @@ std = [
     "zerocopy?/std",
 ]
 time-03 = ["dep:time"]
-zerocopy = ["dep:zerocopy"]
+zerocopy-08 = ["dep:zerocopy"]
 
 [lints]
 workspace = true

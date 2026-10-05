@@ -1,7 +1,7 @@
 //! A value and the stamp it was captured with.
 
 use derive_more::{Deref, DerefMut, From, Into};
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{FromBytes, Immutable, KnownLayout};
 
 use crate::{TimePoint, Timestamp};
@@ -27,7 +27,7 @@ use crate::{TimePoint, Timestamp};
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Deref, DerefMut, From, Into,
 )]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, Immutable, KnownLayout))]
 pub struct Timed<T, S = Timestamp> {
     /// When the value was captured.
     pub stamp: S,
@@ -39,9 +39,9 @@ pub struct Timed<T, S = Timestamp> {
 
 const _: () = assert!(size_of::<Timed<u64>>() == 16, "a stamp and a word, with no padding");
 
-// What `zerocopy` gives a stamped value: read from bytes, never written to them, since its
+// What `zerocopy-08` gives a stamped value: read from bytes, never written to them, as zerocopy's
 // `IntoBytes` derive takes a generic struct only where every field is `Unaligned`, and no stamp is.
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 const _: () = {
     /// Compiles only for a type read from any bytes.
     const fn is_from_bytes<T: FromBytes>() {}

@@ -2,11 +2,11 @@
 //! `chrono`: each a test, so a page shows code that compiles and runs.
 //!
 //! A page includes a listing by the anchor around it. A chapter's listings are in the module named
-//! for it, and those of Serialization that need `zerocopy` or `schemars` in `bytes` and
+//! for it, and those of Serialization that need `zerocopy-08` or `schemars` in `bytes` and
 //! `json_schema`; each module is built where the features it reads are on.
 
 #[cfg(test)]
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 mod bytes;
 #[cfg(test)]
 #[cfg(feature = "schemars")]

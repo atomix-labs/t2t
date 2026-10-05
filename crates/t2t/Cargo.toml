@@ -25,13 +25,13 @@ targets = [
 [features]
 default = []
 
-chrono-04 = ["t2t-core/chrono-04"]
-jiff-02   = ["t2t-core/jiff-02"]
-schemars  = ["serde", "t2t-core/schemars"]
-serde     = ["t2t-core/serde"]
-std       = ["t2t-clock/std", "t2t-core/std"]
-time-03   = ["t2t-core/time-03"]
-zerocopy  = ["t2t-core/zerocopy"]
+chrono-04   = ["t2t-core/chrono-04"]
+jiff-02     = ["t2t-core/jiff-02"]
+schemars    = ["serde", "t2t-core/schemars"]
+serde       = ["t2t-core/serde"]
+std         = ["t2t-clock/std", "t2t-core/std"]
+time-03     = ["t2t-core/time-03"]
+zerocopy-08 = ["t2t-core/zerocopy-08"]
 
 [lints]
 workspace = true

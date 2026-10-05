@@ -1,7 +1,7 @@
 //! Points on the wall clock and on International Atomic Time.
 
 use derive_more::Debug;
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 /// A point on the wall clock, in nanoseconds since the Unix epoch.
@@ -26,7 +26,7 @@ use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct Timestamp(pub(crate) i64);
 
 impl Timestamp {
@@ -54,5 +54,5 @@ impl Timestamp {
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct TaiTimestamp(pub(crate) i64);

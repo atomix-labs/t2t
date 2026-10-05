@@ -3,7 +3,7 @@
 use core::str::FromStr;
 
 use derive_more::{Debug, Display};
-#[cfg(feature = "zerocopy")]
+#[cfg(feature = "zerocopy-08")]
 use zerocopy::{FromBytes, Immutable, IntoBytes, KnownLayout};
 
 use crate::spelling::{Count, read_count};
@@ -31,7 +31,7 @@ use crate::{ParseTickdeltaError, TickRate, Timedelta};
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[display("{}", Count(*_0, " ticks"))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct Tickstamp(pub(crate) i64);
 
 impl Tickstamp {
@@ -68,7 +68,7 @@ impl Tickstamp {
 #[derive(Debug, Display, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[display("{}", Count(*_0, " ticks"))]
 #[debug("{self}")]
-#[cfg_attr(feature = "zerocopy", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
+#[cfg_attr(feature = "zerocopy-08", derive(FromBytes, IntoBytes, Immutable, KnownLayout))]
 pub struct Tickdelta(pub(crate) i64);
 
 impl Tickdelta {
