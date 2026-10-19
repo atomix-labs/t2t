@@ -20,21 +20,21 @@ derive_more = { version = "2.1.1", default-features = false }
 divan       = { version = "0.1.21" }
 fancy-regex = { version = "0.19.2" }
 itoa        = { version = "1.0.18", default-features = false }
-jiff        = { version = "0.2.37", default-features = false }
+jiff        = { version = "0.2.38", default-features = false }
 libc        = { version = "0.2.189", default-features = false }
 loom        = { version = "0.7.2" }
-powerfmt    = { version = "0.2.0", default-features = false }
-proptest    = { version = "1.11.0" }
+powerfmt    = { version = "0.2.1", default-features = false }
+proptest    = { version = "1.12.0" }
 raw-cpuid   = { version = "11.6.0", default-features = false }
 rstest      = { version = "0.27.0", default-features = false }
-schemars    = { version = "1.2.2", default-features = false }
+schemars    = { version = "1.2.3", default-features = false }
 serde       = { version = "1.0.229", features = ["derive"] }
 serde_core  = { version = "1.0.229", default-features = false }
-serde_json  = { version = "1.0.151" }
+serde_json  = { version = "1.0.154" }
 serde_test  = { version = "1.0.177" }
 time        = { version = "0.3.55", default-features = false }
-trybuild    = { version = "1.0.121" }
-zerocopy    = { version = "0.8.59", default-features = false, features = ["derive"] }
+trybuild    = { version = "1.0.122" }
+zerocopy    = { version = "0.8.63", default-features = false, features = ["derive"] }
 # internal
 t2t-clock = { path = "crates/t2t-clock", version = "0.1.1", default-features = false }
 t2t-core  = { path = "crates/t2t-core", version = "0.1.1", default-features = false }
